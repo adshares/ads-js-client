@@ -530,9 +530,7 @@ class Ads {
    * @returns {string} secret key (64 hexadecimal characters)
    */
   static getSecretKey (seed) {
-    return Hex.byteToHex(
-      Ed25519.getMasterKeyFromSeed(Hex.stringToHex(seed)).key,
-    ).toUpperCase()
+    return Hex.byteToHex(Ed25519.getSecretKey(seed)).toUpperCase()
   }
 
   /**

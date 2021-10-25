@@ -1,4 +1,4 @@
-import createHmac from 'create-hmac'
+import Crypto from 'crypto'
 import NaCl from 'tweetnacl'
 
 class Ed25519 {
@@ -13,7 +13,7 @@ class Ed25519 {
     const indexBuffer = Buffer.allocUnsafe(4)
     indexBuffer.writeUInt32BE(index, 0)
     const data = Buffer.concat([Buffer.alloc(1, 0), key, indexBuffer])
-    const I = createHmac('sha512', chainCode).update(data).digest()
+    const I = Crypto.createHmac('sha512', chainCode).update(data).digest()
     const IL = I.slice(0, 32)
     const IR = I.slice(32)
     return {
@@ -23,7 +23,7 @@ class Ed25519 {
   }
 
   static getMasterKeyFromSeed = (seed) => {
-    const hmac = createHmac('sha512', this.ED25519_CURVE)
+    const hmac = Crypto.createHmac('sha512', this.ED25519_CURVE)
     const I = hmac.update(Buffer.from(seed, 'hex')).digest()
     const IL = I.slice(0, 32)
     const IR = I.slice(32)
@@ -31,6 +31,10 @@ class Ed25519 {
       key: IL,
       chainCode: IR,
     }
+  }
+
+  static getSecretKey = (seed) => {
+    return Crypto.createHash('sha256').update(seed).digest();
   }
 
   static getPublicKey = (secretKey, withZeroByte = true) => {
