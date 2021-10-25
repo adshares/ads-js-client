@@ -17,23 +17,36 @@
     "url": "https://github.com/adshares/ads-js-client/issues"
   },
   "homepage": "https://github.com/adshares/ads-js-client#readme",
-  "main": "lib/index.js",
+  "main": "dist/main.cjs.js",
+  "module": "dist/main.esm.js",
+  "browser": "dist/main.umd.js",
   "scripts": {
-    "dev": "node scripts/dev",
-    "build": "node scripts/build",
-    "clean": "rimraf build/ dev/",
-    "lint": "eslint app chrome test scripts webpack/*.js",
-    "test": "cross-env NODE_ENV=test mocha -r ./tests/setup-app test/app"
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest tests",
+    "pretest": "npm run build",
+    "lint": "eslint app chrome test scripts webpack/*.js"
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
-    "eslint": "^7.32.0",
-    "eslint-config-airbnb": "^16.0.3",
+    "@babel/core": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-multi-entry": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.0.6",
+    "eslint": "^8.1.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.25.2",
-    "eslint-plugin-promise": "^5.1.1"
+    "eslint-plugin-promise": "^5.1.1",
+    "jest": "^27.3.1",
+    "rollup": "^2.58.1"
   },
   "dependencies": {
     "bignumber.js": "^9.0.1",
+    "create-hmac": "^1.1.7",
     "jsonrpc-lite": "^2.2.0",
     "tweetnacl": "^1.0.3"
   }
