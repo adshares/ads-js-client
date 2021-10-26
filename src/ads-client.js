@@ -1,4 +1,4 @@
-import parser from 'jsonrpc-lite/jsonrpc'
+import RPC from 'jsonrpc-lite/jsonrpc'
 import Hex from './hex'
 import ADS from './ads'
 import { RpcError } from './errors'
@@ -24,7 +24,7 @@ export default class AdsClient {
   }
 
   request (method, params) {
-    return this.send(parser.request(Hex.uuidv4(), method, params)).then(response => response.json(), (error) => {
+    return this.send(RPC.request(Hex.uuidv4(), method, params)).then(response => response.json(), (error) => {
       throw new RpcError('RPC Server Communication Error', error)
     }).then((response) => {
       if (response.error) {

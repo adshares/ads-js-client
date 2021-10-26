@@ -1,9 +1,7 @@
 /* eslint-disable no-bitwise */
-import NaCl from 'tweetnacl'
 import BigNumber from 'bignumber.js'
-import Hex from './hex'
 import { TransactionDataError } from './errors'
-import Ed25519 from './ed25519'
+import Crypto from './crypto'
 import TxEncoder from './tx-encoder'
 import { TX_FIELDS, TX_TYPES } from './const'
 import TxDecoder from './tx-decoder'
@@ -31,6 +29,9 @@ export default class Ads {
   static TX_LOCAL_TRANSFER_FEE = 0.0005
   static TX_REMOTE_TRANSFER_FEE = 0.0005
 
+  static TX_FIELDS = TX_FIELDS
+  static TX_TYPES = TX_TYPES
+
   static addressChecksum = addressChecksum
   static compareAddresses = compareAddresses
   static compareAddressesByNode = compareAddressesByNode
@@ -40,60 +41,12 @@ export default class Ads {
   static validateEthAddress = validateEthAddress
   static validateKey = validateKey
 
-  /**
-   * Returns public key derived from secret key.
-   *
-   * @param secretKey secret key (64 hexadecimal characters)
-   * @returns {string} public key (64 hexadecimal characters)
-   */
-  static getPublicKey (secretKey) {
-    return Hex.byteToHex(
-      Ed25519.getPublicKey(Hex.hexToByte(secretKey), false),
-    ).toUpperCase()
-  }
-
-  /**
-   * Returns secret key derived from seed phrase.
-   *
-   * @param seed seed phrase
-   * @returns {string} secret key (64 hexadecimal characters)
-   */
-  static getSecretKey (seed) {
-    return Hex.byteToHex(
-      Ed25519.getSecretKey(seed),
-    ).toUpperCase()
-  }
-
-  /**
-   * Signs data with a secret key.
-   *
-   * @param secretKey secret key 32 bytes
-   * @param publicKey public key 32 bytes
-   * @param data data (hexadecimal characters); in case of transaction: `tx.account_hashin` + `tx.data`
-   * @returns {string} signature 64 bytes
-   */
-  static sign (secretKey, publicKey, data) {
-    return Hex.byteToHex(NaCl.sign.detached(
-      Hex.hexToByte(data),
-      Hex.hexToByte(secretKey + publicKey),
-    )).toUpperCase()
-  }
-
-  /**
-   * Validates signature.
-   *
-   * @param signature (128 hexadecimal characters)
-   * @param publicKey (64 hexadecimal characters)
-   * @param data data (hexadecimal characters)
-   * @returns {boolean}
-   */
-  static validateSignature (signature, publicKey, data) {
-    return NaCl.sign.detached.verify(
-      Hex.hexToByte(data),
-      Hex.hexToByte(signature),
-      Hex.hexToByte(publicKey),
-    )
-  }
+  static getPublicKey = Crypto.getPublicKey
+  static getSecretKey = Crypto.getSecretKey
+  static getMasterKey = Crypto.getMasterKey
+  static getNextKey = Crypto.getNextKey
+  static sign = Crypto.sign
+  static validateSignature = Crypto.validateSignature
 
   /**
    * Encodes command data.
@@ -453,7 +406,3 @@ export default class Ads {
     return Math.max(0, parseInt(command[TX_FIELDS.AMOUNT], 10) - parseInt(externalFee, 10))
   }
 }
-
-exports.Ads = Ads
-exports.TX_TYPES = TX_TYPES
-exports.TX_FIELDS = TX_FIELDS

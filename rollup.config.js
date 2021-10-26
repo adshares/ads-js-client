@@ -6,17 +6,30 @@ import pkg from './package.json'
 export default [
   // browser-friendly UMD build
   {
-    input: 'src/index.js',
+    input: 'src/ads.js',
     output: {
+      name: 'Ads',
       file: pkg.browser,
       format: 'umd',
+      globals: {
+        crypto: 'Crypto'
+      }
     },
     plugins: [
-      resolve(),
-      commonjs(),
+      resolve({
+        // jsnext: true,
+        // main: false
+      }),
+      commonjs({
+        // include: [ "./src/ed25519.js", "node_modules/**" ],
+        // ignoreGlobal: false,
+        // sourceMap: false,
+      }),
       babel({
-        babelHelpers: 'bundled',
+        babelHelpers: 'runtime',
         exclude: ['node_modules/**'],
+        presets: ['@babel/preset-env'],
+        plugins: ["@babel/plugin-transform-runtime"],
       }),
     ],
   },
@@ -28,16 +41,24 @@ export default [
   // an array for the `output` option, where we can specify
   // `file` and `format` for each target)
   {
-    input: 'src/index.js',
-    external: ['bignumber.js', 'create-hmac', 'tweetnacl', 'js-sha256'],
+    input: 'src/ads.js',
+    external: [
+      /@babel\/runtime/,
+      'bignumber.js',
+      'crypto-js',
+      'jsonrpc-lite/jsonrpc',
+      'tweetnacl',
+    ],
     output: [
       { file: pkg.main, format: 'cjs' },
       { file: pkg.module, format: 'es' },
     ],
     plugins: [
       babel({
-        babelHelpers: 'bundled',
+        babelHelpers: 'runtime',
         exclude: ['node_modules/**'],
+        presets: ['@babel/preset-env'],
+        plugins: ["@babel/plugin-transform-runtime"],
       }),
     ],
   },

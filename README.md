@@ -14,7 +14,7 @@
 
 <br>
 
-ADS JS Client is an **JavaScript ES2021** client for the [ADS blockchain](https://github.com/adshares/ads) API.
+ADS JS Client is an **JavaScript ES2015** client for the [ADS blockchain](https://github.com/adshares/ads) API.
 
 The module can be used to send basic transactions. It also provides integration with [ADS Browser Wallet](https://github.com/adshares/ads-browser-wallet).
 ADS JS Client is a free, open-source npm module. It supports both mainnet and testnet.
