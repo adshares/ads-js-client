@@ -1,11 +1,7 @@
 /* eslint-disable no-plusplus */
 
-class Hex {
+export default class Hex {
 
-  /**
-   * @param byteArray Uint8Array
-   * @returns {*}
-   */
   static byteToHex (byteArray) {
     // parseInt is needed for eliminating invalid number of arguments warning
     // for toString function
@@ -16,10 +12,6 @@ class Hex {
     )
   }
 
-  /**
-   * @param str string
-   * @returns {Uint8Array}
-   */
   static hexToByte (str) {
     if (!str) {
       return new Uint8Array(0)
@@ -33,10 +25,6 @@ class Hex {
     return new Uint8Array(a)
   }
 
-  /**
-   * @param str
-   * @returns {string}
-   */
   static stringToHex (str) {
     const result = []
     let hex
@@ -48,20 +36,12 @@ class Hex {
     return result.join('')
   }
 
-  /**
-   * @param str string
-   * @returns {string}
-   */
   static sanitizeHex (str) {
     return str.replace(/^0x/, '').toUpperCase()
   }
 
-  /**
-   * @param str string
-   * @returns {string}
-   */
   static sanitize0xHex (str) {
-    return `0x${this.sanitizeHex(str)}`
+    return `0x${self.sanitizeHex(str)}`
   }
 
   /**
@@ -77,11 +57,6 @@ class Hex {
     return data.match(/.{1,2}/g).reverse().join('')
   }
 
-  /**
-   * Generate pseudo UUID v4.
-   *
-   * @returns {string}
-   */
   static uuidv4 () {
     /*eslint no-bitwise: ["error", { "allow": ["|", "&" ] }]*/
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -91,5 +66,3 @@ class Hex {
     })
   }
 }
-
-export default Hex

@@ -1,7 +1,8 @@
-import Crypto from 'crypto'
+import createHmac from 'create-hmac'
 import NaCl from 'tweetnacl'
+import { sha256 } from 'js-sha256'
 
-class Ed25519 {
+export default class Ed25519 {
 
   static ED25519_CURVE = 'ed25519 seed'
   static HARDENED_OFFSET = 0x80000000
@@ -13,7 +14,7 @@ class Ed25519 {
     const indexBuffer = Buffer.allocUnsafe(4)
     indexBuffer.writeUInt32BE(index, 0)
     const data = Buffer.concat([Buffer.alloc(1, 0), key, indexBuffer])
-    const I = Crypto.createHmac('sha512', chainCode).update(data).digest()
+    const I = createHmac('sha512', chainCode).update(data).digest()
     const IL = I.slice(0, 32)
     const IR = I.slice(32)
     return {
@@ -23,7 +24,7 @@ class Ed25519 {
   }
 
   static getMasterKeyFromSeed = (seed) => {
-    const hmac = Crypto.createHmac('sha512', this.ED25519_CURVE)
+    const hmac = createHmac('sha512', Ed25519.ED25519_CURVE)
     const I = hmac.update(Buffer.from(seed, 'hex')).digest()
     const IL = I.slice(0, 32)
     const IR = I.slice(32)
@@ -34,7 +35,7 @@ class Ed25519 {
   }
 
   static getSecretKey = (seed) => {
-    return Crypto.createHash('sha256').update(seed).digest();
+    return sha256.update(seed).array()
   }
 
   static getPublicKey = (secretKey, withZeroByte = true) => {
@@ -46,28 +47,27 @@ class Ed25519 {
   }
 
   static isValidPath = (path) => {
-    if (!this.pathRegex.test(path)) {
+    if (!Ed25519.pathRegex.test(path)) {
       return false
     }
-    return !path.split('/').slice(1).map(this.replaceDerive).some(isNaN)
+    return !path.split('/').slice(1).map(Ed25519.replaceDerive).some(isNaN)
   }
 
   static derivePath = (path, seed) => {
-    if (!this.isValidPath(path)) {
+    if (!Ed25519.isValidPath(path)) {
       throw new Error('Invalid derivation path')
     }
-    const { key, chainCode } = this.getMasterKeyFromSeed(seed)
+    const { key, chainCode } = Ed25519.getMasterKeyFromSeed(seed)
     const segments = path.split('/').
       slice(1).
-      map(this.replaceDerive).
+      map(Ed25519.replaceDerive).
       map(el => parseInt(el, 10))
     return segments.reduce(
-      (parentKeys, segment) => this.ckdPriv(parentKeys,
-        segment + this.HARDENED_OFFSET),
+      (parentKeys, segment) => Ed25519.ckdPriv(parentKeys,
+        segment + Ed25519.HARDENED_OFFSET),
       { key, chainCode },
     )
   }
 }
 
 exports.Ed25519 = Ed25519
-export default Ed25519

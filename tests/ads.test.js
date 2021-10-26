@@ -1,5 +1,4 @@
-const BigNumber = require('bignumber.js')
-const { Ads, TX_FIELDS } = require('../dist/main.cjs')
+const { Ads, TX_FIELDS } = require('../dist')
 
 test('parse broadcast', () => {
   // {"run":"broadcast","message":"00"}
@@ -240,9 +239,9 @@ test('parse send_many', () => {
 
   const wires = parsedData[TX_FIELDS.WIRES]
   expect(wires[0][TX_FIELDS.ADDRESS]).toBe('0001-00000001-8B4E')
-  expect(wires[0][TX_FIELDS.AMOUNT]).toEqual(new BigNumber(100 * 100000000000))
+  expect(wires[0][TX_FIELDS.AMOUNT].toNumber()).toEqual(100 * 100000000000)
   expect(wires[1][TX_FIELDS.ADDRESS]).toBe('0001-00000002-BB2D')
-  expect(wires[1][TX_FIELDS.AMOUNT]).toEqual(new BigNumber(100 * 100000000000))
+  expect(wires[1][TX_FIELDS.AMOUNT].toNumber()).toEqual(100 * 100000000000)
   // sender
   expect(parsedData[TX_FIELDS.SENDER]).toBe('0001-00000000-9B6F')
   expect(parsedData[TX_FIELDS.MESSAGE_ID]).toBe(4)
@@ -256,7 +255,7 @@ test('parse send_one', () => {
   const parsedData = Ads.decodeCommand(data)
   expect(parsedData[TX_FIELDS.TYPE]).toBe('send_one')
   expect(parsedData[TX_FIELDS.ADDRESS]).toBe('0001-00000001-8B4E')
-  expect(parsedData[TX_FIELDS.AMOUNT]).toEqual(new BigNumber(100000 * 100000000000))
+  expect(parsedData[TX_FIELDS.AMOUNT].toNumber()).toEqual(10000000000000000)
   // sender
   expect(parsedData[TX_FIELDS.SENDER]).toBe('0001-00000000-9B6F')
   expect(parsedData[TX_FIELDS.MESSAGE_ID]).toBe(1)
@@ -335,7 +334,7 @@ test('sign empty string', () => {
   const data = ''
   const expSignature = 'BB4946AEC4C1BE7E1BCB11B27B3CFB13B3234417FCDC96356CEB910C233423B5692B93196471C75D1BDB9E8FE2BCAD184E1A0B37976BDF228FF5A60D5173F80B'
 
-  expect(Ads.sign(data, publicKey, secretKey)).toBe(expSignature)
+  expect(Ads.sign(secretKey, publicKey, data)).toBe(expSignature)
 })
 
 test('sign transaction', () => {
@@ -347,27 +346,135 @@ test('sign transaction', () => {
   const data = hashin + txData
   const expSignature = 'F9C975D060D84EBCA286E7C9E4AA68F0B77D005B98067C17E00AA93A102D48BB49A20233A37CBF3BA8BB1A8A8B94FC4832BC286B59EE66AA0BA01E2D3AA8CF0A'
 
-  expect(Ads.sign(data, publicKey, secretKey)).toBe(expSignature)
+  expect(Ads.sign(secretKey, publicKey, data)).toBe(expSignature)
 })
 
 test('invalid key length', () => {
   const secretKey = ''
+  const publicKey = ''
   const data = ''
   expect(() => {
-    Ads.sign(data, secretKey)
+    Ads.sign(secretKey, publicKey, data)
   }).toThrow()
 })
 
-test('create private key', () => {
+test('create private key from seed', () => {
   const seed = 'a'
   const expSecretKey = 'CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB'
+  const expPublicKey = 'EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E'
+  const expSg = '1F0571D30661FB1D50BE0D61A0A0E97BAEFF8C030CD0269ADE49438A4AD4CF897367E21B100C694F220D922200B3AB852A377D8857A64C36CB1569311760F303'
 
-  expect(Ads.getSecretKey(seed)).toBe(expSecretKey)
+  const secretKey = Ads.getSecretKey(seed)
+  const publicKey = Ads.getPublicKey(secretKey)
+  const sg = Ads.sign(secretKey, publicKey, '')
+
+  expect(secretKey).toBe(expSecretKey)
+  expect(publicKey).toBe(expPublicKey)
+  expect(expSg).toBe(sg)
 })
 
-test('create public key', () => {
-  const secretKey = 'CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB'
-  const expPublicKey = 'EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E'
+test('validate signature', () => {
+  expect(Ads.validateSignature(
+    '1F0571D30661FB1D50BE0D61A0A0E97BAEFF8C030CD0269ADE49438A4AD4CF897367E21B100C694F220D922200B3AB852A377D8857A64C36CB1569311760F303',
+    'EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E',
+    '',
+  )).toBe(true)
+  expect(Ads.validateSignature(
+    'A21AB5345F0604940A92C8BE74E13ED832E25A59B03D87D9E77B036571EE22B15D58FE51B09A2A54DDD22B3F92EBE65E58840B1CB2711A3623F9C008902B860C',
+    'EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E',
+    '666F6F',
+  )).toBe(true)
+  expect(Ads.validateSignature(
+    'a21ab5345f0604940a92c8be74e13ed832e25a59b03d87d9e77b036571ee22b15d58fe51b09a2a54ddd22b3f92ebe65e58840b1cb2711a3623f9c008902b860c',
+    'eae1c8793b5597c4b3f490e76ac31172c439690f8ee14142bb851a61f9a49f0e',
+    '666f6f',
+  )).toBe(true)
+  expect(Ads.validateSignature(
+    '1F0571D30661FB1D50BE0D61A0A0E97BAEFF8C030CD0269ADE49438A4AD4CF897367E21B100C694F220D922200B3AB852A377D8857A64C36CB1569311760F303',
+    'EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E',
+    '666F6F',
+  )).toBe(false)
+  expect(Ads.validateSignature(
+    'A21AB5345F0604940A92C8BE74E13ED832E25A59B03D87D9E77B036571EE22B15D58FE51B09A2A54DDD22B3F92EBE65E58840B1CB2711A3623F9C008902B860C',
+    'A9C0D972D8AAB73805EC4A28291E052E3B5FAFE0ADC9D724917054E5E2690363',
+    '666F6F',
+  )).toBe(false)
+})
 
-  expect(Ads.getPublicKey(secretKey)).toBe(expPublicKey)
+test('address checksum', () => {
+  expect(Ads.addressChecksum('0000', '00000000')).toBe('313E')
+  expect(Ads.addressChecksum('0001', '00000001')).toBe('8B4E')
+  expect(Ads.addressChecksum('0005', '0000047E')).toBe('41F4')
+  expect(Ads.addressChecksum('00ab', '00000a7e')).toBe('8737')
+  expect(Ads.addressChecksum('0xFFFF', '0xFFFFFFFF')).toBe('A6E1')
+})
+
+test('compare addresses', () => {
+  expect(Ads.compareAddresses('0005-0000047E-41F4', '0005-0000047E-41F4')).toBe(true)
+  expect(Ads.compareAddresses('0005-0000047E-41F4', '0005-0000047e-41f4')).toBe(true)
+  expect(Ads.compareAddresses('0005-0000047E-41F4', '0005-0000047E-XXXX')).toBe(true)
+  expect(Ads.compareAddresses('0005-0000047E-XXXX', '0005-0000047E-XXXX')).toBe(true)
+  expect(Ads.compareAddresses('0005-0000047E-41F4', '0005-0000047E-2222')).toBe(true)
+  expect(Ads.compareAddresses('0005-0000047E-41F4', '0005-00000001-XXXX')).toBe(false)
+  expect(Ads.compareAddresses('0002-0000047E-2620', '0005-0000047E-41F4')).toBe(false)
+})
+
+test('compare addresses by node', () => {
+  expect(Ads.compareAddressesByNode('0005-0000047E-41F4', '0005-0000047E-41F4')).toBe(true)
+  expect(Ads.compareAddressesByNode('0005-0000047E-41F4', '0005-00000002-322B')).toBe(true)
+  expect(Ads.compareAddressesByNode('0002-0000047E-2620', '0005-0000047E-41F4')).toBe(false)
+})
+
+test('format address', () => {
+  expect(Ads.formatAddress('0000', '00000000')).toBe('0000-00000000-313E')
+  expect(Ads.formatAddress('0005', '0000047E')).toBe('0005-0000047E-41F4')
+  expect(Ads.formatAddress('0x00ab', '0x00000a7e')).toBe('00AB-00000A7E-8737')
+})
+
+test('split address', () => {
+  expect(Ads.splitAddress('foo_address')).toBe(null)
+  expect(Ads.splitAddress('0002:0000047E:2620')).toBe(null)
+
+  const parts1 = Ads.splitAddress('0005-0000047E-41F4')
+  expect(parts1.nodeId).toBe('0005')
+  expect(parts1.userAccountId).toBe('0000047E')
+  expect(parts1.checksum).toBe('41F4')
+
+  const parts2 = Ads.splitAddress('00ab-00000a7e-8737')
+  expect(parts2.nodeId).toBe('00AB')
+  expect(parts2.userAccountId).toBe('00000A7E')
+  expect(parts2.checksum).toBe('8737')
+})
+
+test('validate address', () => {
+  expect(Ads.validateAddress('0000-00000000-313E')).toBe(true)
+  expect(Ads.validateAddress('0002-0000047E-2620')).toBe(true)
+  expect(Ads.validateAddress('0002-0000047E-XXXX')).toBe(true)
+  expect(Ads.validateAddress('00ab-00000a7e-8737')).toBe(true)
+  expect(Ads.validateAddress('0002-0000047E-1111')).toBe(false)
+  expect(Ads.validateAddress(null)).toBe(false)
+  expect(Ads.validateAddress('')).toBe(false)
+  expect(Ads.validateAddress('foo_address')).toBe(false)
+})
+
+test('validate ETH address', () => {
+  expect(Ads.validateEthAddress('0xcfcecfe2bd2fed07a9145222e8a7ad9cf1ccd22a')).toBe(true)
+  expect(Ads.validateEthAddress('0xCFCECFE2BD2FED07A9145222E8A7AD9CF1CCD22A')).toBe(true)
+  expect(Ads.validateEthAddress('cfcecfe2bd2fed07a9145222e8a7ad9cf1ccd22a')).toBe(true)
+  expect(Ads.validateEthAddress('0xcfcecfe2bd2fed07a9145222e')).toBe(false)
+  expect(Ads.validateEthAddress('cfcecfe2bd2fed07a9145222e8a7ad9cf1ccd22a2bd2fed07a')).toBe(false)
+  expect(Ads.validateEthAddress(null)).toBe(false)
+  expect(Ads.validateEthAddress('')).toBe(false)
+  expect(Ads.validateEthAddress('foo_address')).toBe(false)
+})
+
+test('validate key', () => {
+  expect(Ads.validateKey('cfcaecfe2bd2fed07a91d9c45222e8a7ad9cf5222e8a7ad9cf1ccd22a1ccd22a')).toBe(true)
+  expect(Ads.validateKey('CFCAECFE2BD2FED07A91D9C45222E8A7AD9CF5222E8A7AD9CF1CCD22A1CCD22A')).toBe(true)
+  expect(Ads.validateKey('cfcecfe2bd2fed07a9145222e')).toBe(false)
+  expect(Ads.validateKey('cfcecfe2bd7a9145222e8a7ad9cf2fed07a9145222e8a7ad97a9145222e8a7ad9cfcf1ccd22a2bd2fed07a')).
+    toBe(false)
+  expect(Ads.validateKey(null)).toBe(false)
+  expect(Ads.validateKey('')).toBe(false)
+  expect(Ads.validateKey('foo_key')).toBe(false)
 })

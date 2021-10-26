@@ -4,379 +4,22 @@ import BigNumber from 'bignumber.js'
 import Hex from './hex'
 import { TransactionDataError } from './errors'
 import Ed25519 from './ed25519'
+import TxEncoder from './tx-encoder'
+import { TX_FIELDS, TX_TYPES } from './const'
+import TxDecoder from './tx-decoder'
+import {
+  addressChecksum,
+  compareAddresses,
+  compareAddressesByNode,
+  formatAddress,
+  formatNumber,
+  splitAddress,
+  validateAddress,
+  validateEthAddress,
+  validateKey,
+} from './utils'
 
-/**
- * Response field names
- */
-const TX_FIELDS = {
-  /** address */
-  ADDRESS: 'address',
-  /** transaction amount */
-  AMOUNT: 'amount',
-  /** block id */
-  BLOCK_ID: 'blockId',
-  /** block id */
-  BLOCK_ID_FROM: 'blockIdFrom',
-  /** block id */
-  BLOCK_ID_TO: 'blockIdTo',
-  /** message */
-  MSG: 'message',
-  /** message length */
-  MSG_LEN: 'messageLength',
-  /** number of sender transactions */
-  MESSAGE_ID: 'messageId',
-  /** node */
-  NODE_ID: 'nodeId',
-  /** number of node message */
-  NODE_MESSAGE_ID: 'nodeMessageId',
-  /** public key */
-  PUBLIC_KEY: 'publicKey',
-  /** sender address */
-  SENDER: 'sender',
-  /** account */
-  STATUS_ACCOUNT: 'accountStatus',
-  /** node status */
-  STATUS_NODE: 'nodeStatus',
-  /** transaction time */
-  TIME: 'time',
-  /** transaction id */
-  TRANSACTION_ID: 'transactionId',
-  /** transaction type */
-  TYPE: 'type',
-  /** vip hash */
-  VIP_HASH: 'vipHash',
-  /** number of wires */
-  WIRE_COUNT: 'wireCount',
-  /** wires */
-  WIRES: 'wires',
-}
-
-/**
- * Transaction types
- */
-const TX_TYPES = {
-  BROADCAST: 'broadcast',
-  CHANGE_ACCOUNT_KEY: 'change_account_key',
-  CHANGE_NODE_KEY: 'change_node_key',
-  CREATE_ACCOUNT: 'create_account',
-  CREATE_NODE: 'create_node',
-  LOG_ACCOUNT: 'log_account',
-  GET_ACCOUNT: 'get_account',
-  GET_ACCOUNTS: 'get_accounts',
-  FIND_ACCOUNTS: 'find_accounts',
-  GET_BLOCK: 'get_block',
-  GET_BLOCKS: 'get_blocks',
-  GET_BROADCAST: 'get_broadcast',
-  GET_FIELDS: 'get_fields',
-  GET_LOG: 'get_log',
-  GET_MESSAGE: 'get_message',
-  GET_MESSAGE_LIST: 'get_message_list',
-  GET_SIGNATURES: 'get_signatures',
-  GET_TRANSACTION: 'get_transaction',
-  GET_VIPKEYS: 'get_vipkeys',
-  RETRIEVE_FUNDS: 'retrieve_funds',
-  SEND_AGAIN: 'send_again',
-  SEND_MANY: 'send_many',
-  SEND_ONE: 'send_one',
-  SET_ACCOUNT_STATUS: 'set_account_status',
-  SET_NODE_STATUS: 'set_node_status',
-  UNSET_ACCOUNT_STATUS: 'unset_account_status',
-  UNSET_NODE_STATUS: 'unset_node_status',
-  GET_GATEWAYS: 'get_gateways',
-  GET_GATEWAY_FEE: 'get_gateway_fee',
-  GET_TIMESTAMP: 'get_timestamp',
-}
-
-/**
- * Transaction types map
- */
-const TX_TYPES_MAP = {
-  '03': TX_TYPES.BROADCAST,
-  '04': TX_TYPES.SEND_ONE,
-  '05': TX_TYPES.SEND_MANY,
-  '06': TX_TYPES.CREATE_ACCOUNT,
-  '07': TX_TYPES.CREATE_NODE,
-  '08': TX_TYPES.RETRIEVE_FUNDS,
-  '09': TX_TYPES.CHANGE_ACCOUNT_KEY,
-  '0A': TX_TYPES.CHANGE_NODE_KEY,
-  '0B': TX_TYPES.SET_ACCOUNT_STATUS,
-  '0C': TX_TYPES.SET_NODE_STATUS,
-  '0D': TX_TYPES.UNSET_ACCOUNT_STATUS,
-  '0E': TX_TYPES.UNSET_NODE_STATUS,
-  '0F': TX_TYPES.LOG_ACCOUNT,
-  10: TX_TYPES.GET_ACCOUNT,
-  11: TX_TYPES.GET_LOG,
-  12: TX_TYPES.GET_BROADCAST,
-  13: TX_TYPES.GET_BLOCKS,
-  14: TX_TYPES.GET_TRANSACTION,
-  15: TX_TYPES.GET_VIPKEYS,
-  16: TX_TYPES.GET_SIGNATURES,
-  17: TX_TYPES.GET_BLOCK,
-  18: TX_TYPES.GET_ACCOUNTS,
-  19: TX_TYPES.GET_MESSAGE_LIST,
-  '1A': TX_TYPES.GET_MESSAGE,
-  '1B': TX_TYPES.GET_FIELDS,
-}
-
-class Encoder {
-  constructor (obj) {
-    this.obj = obj
-    this.data = ''
-    this.parsed = null
-    this.encode(TX_FIELDS.TYPE)
-  }
-
-  encode (fieldName) {
-    let data
-    const val = this.obj[fieldName]
-    switch (fieldName) {
-      case TX_FIELDS.ADDRESS:
-      case TX_FIELDS.SENDER: {
-        const address = splitAddress(val)
-        const node = Hex.fixByteOrder(this.pad(address.nodeId, 4))
-        const user = Hex.fixByteOrder(this.pad(address.userAccountId, 8))
-        data = node + user
-        break
-      }
-      case TX_FIELDS.AMOUNT: {
-        data = Hex.fixByteOrder(this.pad(val.toString(16), 16))
-        break
-      }
-      case TX_FIELDS.MESSAGE_ID:
-      case TX_FIELDS.NODE_MESSAGE_ID: {
-        data = Hex.fixByteOrder(this.pad(val.toString(16), 8))
-        break
-      }
-      case TX_FIELDS.MSG: {
-        if (this.obj[TX_FIELDS.TYPE] === TX_TYPES.SEND_ONE) {
-          data = this.pad(val, 64)
-        }
-        else {
-          let msg = val
-          let len = msg.length
-          if (len % 2 !== 0) {
-            len += 1
-            msg = `0${msg}`
-          }
-          len /= 2
-          data = Hex.fixByteOrder(this.pad(len.toString(16), 4))
-          data += msg
-        }
-        break
-      }
-      case TX_FIELDS.PUBLIC_KEY: {
-        data = this.pad(val, 64)
-        break
-      }
-      case TX_FIELDS.TIME: {
-        const time = Math.floor(val.getTime() / 1000)
-        data = Hex.fixByteOrder(this.pad(time.toString(16), 8))
-        break
-      }
-      case TX_FIELDS.TYPE: {
-        const type = Object.keys(TX_TYPES_MAP).
-          find(key => TX_TYPES_MAP[key] === val)
-        data = this.pad(type, 2)
-        break
-      }
-      default:
-        throw new TransactionDataError('Invalid transaction field type')
-    }
-    this.parsed = data
-    this.data += data
-
-    return this
-  }
-
-  get lastEncodedField () {
-    return this.parsed
-  }
-
-  get encodedData () {
-    return this.data
-  }
-
-  pad = (field, length) => field.padStart(length, '0')
-}
-
-class Decoder {
-  constructor (data) {
-    this.data = data
-    this.resp = {}
-    this.parsed = null
-  }
-
-  decode (fieldName) {
-    let parsed
-    switch (fieldName) {
-      case TX_FIELDS.ADDRESS:
-      case TX_FIELDS.SENDER: {
-        this.validateLength(12)
-        const node = Hex.fixByteOrder(this.data.substr(0, 4))
-        const user = Hex.fixByteOrder(this.data.substr(4, 8))
-        parsed = Ads.formatAddress(node, user)
-        this.data = this.data.substr(12)
-        break
-      }
-      case TX_FIELDS.AMOUNT: {
-        this.validateLength(16)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 16))
-        // parsed = formatMoney(parseInt(parsed, 16) / 100000000000, 11);
-        // eslint-disable-next-line new-cap,no-undef
-        parsed = new BigNumber(`0x${parsed}`)
-        this.data = this.data.substr(16)
-        break
-      }
-      case TX_FIELDS.BLOCK_ID:
-      case TX_FIELDS.BLOCK_ID_FROM:
-      case TX_FIELDS.BLOCK_ID_TO: {
-        this.validateLength(8)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 8))
-        // parsed = new Date(parseInt(parsed, 16) * 1000);
-        this.data = this.data.substr(8)
-        break
-      }
-      case TX_FIELDS.TIME: {
-        this.validateLength(8)
-        const time = Hex.fixByteOrder(this.data.substr(0, 8))
-        parsed = new Date(parseInt(time, 16) * 1000)
-        this.data = this.data.substr(8)
-        break
-      }
-      case TX_FIELDS.MSG: {
-        const expectedLength = (this.resp[TX_FIELDS.TYPE] === TX_TYPES.SEND_ONE)
-          ?
-          64
-          :
-          this.resp[TX_FIELDS.MSG_LEN] * 2
-        this.validateLength(expectedLength)
-        parsed = this.data
-        this.data = ''
-        break
-      }
-      case TX_FIELDS.MSG_LEN: {
-        this.validateLength(4)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 4))
-        parsed = parseInt(parsed, 16)
-        this.data = this.data.substr(4)
-        break
-      }
-      case TX_FIELDS.MESSAGE_ID:
-      case TX_FIELDS.NODE_MESSAGE_ID: {
-        this.validateLength(8)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 8))
-        parsed = parseInt(parsed, 16)
-        this.data = this.data.substr(8)
-        break
-      }
-      case TX_FIELDS.NODE_ID: {
-        this.validateLength(4)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 4))
-        this.data = this.data.substr(4)
-        break
-      }
-      case TX_FIELDS.PUBLIC_KEY:
-      case TX_FIELDS.VIP_HASH: {
-        this.validateLength(64)
-        // intentional lack of reverse - key and hash are not reversed
-        parsed = this.data.substr(0, 64)
-        this.data = this.data.substr(64)
-        break
-      }
-      case TX_FIELDS.STATUS_ACCOUNT: {
-        this.validateLength(4)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 4))
-        parsed = parseInt(parsed, 16)
-        this.data = this.data.substr(4)
-        break
-      }
-      case TX_FIELDS.STATUS_NODE: {
-        this.validateLength(8)
-        parsed = Hex.fixByteOrder(this.data.substr(0, 8))
-        // node status has 32 bits
-        // operation ' | 0' changes parsed type to int32
-        /* eslint no-bitwise: ["error", { "int32Hint": true }] */
-        parsed = parseInt(parsed, 16)
-        this.data = this.data.substr(8)
-        break
-      }
-      case TX_FIELDS.TRANSACTION_ID: {
-        this.validateLength(16)
-        const node = Hex.fixByteOrder(this.data.substr(0, 4))
-        const msgId = Hex.fixByteOrder(this.data.substr(4, 8))
-        const txOffset = Hex.fixByteOrder(this.data.substr(12, 4))
-        parsed = `${node}:${msgId}:${txOffset}`
-        this.data = this.data.substr(16)
-        break
-      }
-      case TX_FIELDS.TYPE: {
-        this.validateLength(2)
-        // intentional lack of reverse - 1 byte does not need to be reversed
-        const type = this.data.substr(0, 2)
-        parsed = TX_TYPES_MAP[type]
-        this.data = this.data.substr(2)
-        break
-      }
-      case TX_FIELDS.WIRE_COUNT: {
-        this.validateLength(4)
-        const count = Hex.fixByteOrder(this.data.substr(0, 4))
-        parsed = parseInt(count, 16)
-        this.data = this.data.substr(4)
-        break
-      }
-      case TX_FIELDS.WIRES: {
-        const count = this.resp[TX_FIELDS.WIRE_COUNT]
-        const expLength = count * 28// 4+8+16(node+user+amount)
-        this.validateLength(expLength)
-
-        parsed = []
-        for (let i = 0; i < count; i += 1) {
-          const node = Hex.fixByteOrder(this.data.substr(0, 4))
-          const user = Hex.fixByteOrder(this.data.substr(4, 8))
-          const amount = Hex.fixByteOrder(this.data.substr(12, 16))
-          const address = Ads.formatAddress(node, user)
-          parsed.push({
-            [TX_FIELDS.ADDRESS]: address,
-            // eslint-disable-next-line new-cap,no-undef
-            [TX_FIELDS.AMOUNT]: new BigNumber(`0x${amount}`),
-          })
-          this.data = this.data.substr(28)
-        }
-        break
-      }
-
-      default:
-        throw new TransactionDataError('Invalid transaction field type')
-    }
-
-    this.resp[fieldName] = parsed
-    this.parsed = parsed
-
-    return this
-  }
-
-  skip (charCount) {
-    this.parsed = this.data.substr(0, charCount)
-    this.data = this.data.substr(charCount)
-    return this
-  }
-
-  get lastDecodedField () {
-    return this.parsed
-  }
-
-  get decodedData () {
-    return this.resp
-  }
-
-  validateLength (expectedLength) {
-    if (this.data.length < expectedLength) {
-      throw new TransactionDataError('Invalid transaction data length')
-    }
-  }
-}
-
-class Ads {
+export default class Ads {
 
   static BLOCK_LENGTH = 512
   static DIVIDEND_LENGTH = 2048
@@ -388,128 +31,14 @@ class Ads {
   static TX_LOCAL_TRANSFER_FEE = 0.0005
   static TX_REMOTE_TRANSFER_FEE = 0.0005
 
-  /**
-   * Calculates CRC16 checksum.
-   *
-   * @param data a input data
-   * @returns {string} checksum (4 hexadecimal characters)
-   */
-  static crc16 (data) {
-    const d = Hex.hexToByte(Hex.sanitizeHex(data))
-
-    let crc = 0x1d0f
-    /*eslint no-bitwise: ["error", { "allow": ["^", "^=", "&", ">>", "<<"] }]*/
-    for (const b of d) {
-      let x = (crc >> 8) ^ b
-      x ^= x >> 4
-      crc = ((crc << 8) ^ ((x << 12)) ^ ((x << 5)) ^ (x)) & 0xFFFF
-    }
-
-    const result = `0000${crc.toString(16)}`
-    return result.substr(result.length - 4)
-  }
-
-  /**
-   * Calculates a ADS account address checksum.
-   *
-   * @param nodeId the node id (4 hexadecimal characters)
-   * @param userAccountId the id of the user account (8 hexadecimal characters)
-   * @returns {string} the account address checksum (4 hexadecimal characters)
-   */
-  static addressChecksum (nodeId, userAccountId) {
-    return Hex.sanitizeHex(this.crc16(`${nodeId}${userAccountId}`))
-  }
-
-  /**
-   *
-   * @param nodeId node identifier
-   * @param userAccountId user account identifier
-   * @returns {string}
-   */
-  static formatAddress (nodeId, userAccountId) {
-    return `${Hex.sanitizeHex(nodeId)}-${Hex.sanitizeHex(
-      userAccountId)}-${this.addressChecksum(nodeId, userAccountId)}`
-  }
-
-  /**
-   *
-   * @param address
-   * @returns {{nodeId: string, userAccountId: string, checksum: string}|null}
-   */
-  static splitAddress (address) {
-    const addressRegexp = /^([0-9a-fA-F]{4})-([0-9a-fA-F]{8})-([0-9a-fA-F]{4}|XXXX)$/
-    const matches = addressRegexp.exec(address)
-    if (!matches) {
-      return null
-    }
-    return {
-      nodeId: Hex.sanitizeHex(matches[1]),
-      userAccountId: Hex.sanitizeHex(matches[2]),
-      checksum: matches[3] === 'XXXX'
-        ? this.addressChecksum(matches[1], matches[2])
-        : Hex.sanitizeHex(matches[3]),
-    }
-  }
-
-  /**
-   *
-   * @param address1
-   * @param address2
-   * @returns {boolean}
-   */
-  static compareAddresses (address1, address2) {
-    const a1 = this.splitAddress(address1)
-    const a2 = this.splitAddress(address2)
-    return a1 && a2 && a1.nodeId === a2.nodeId && a1.userAccountId ===
-      a2.userAccountId
-  }
-
-  /**
-   *
-   * @param address1
-   * @param address2
-   * @returns {boolean}
-   */
-  static compareAddressesByNode (address1, address2) {
-    const a1 = this.splitAddress(address1)
-    const a2 = this.splitAddress(address2)
-    return a1 && a2 && a1.nodeId === a2.nodeId
-  }
-
-  /**
-   * Checks if ADS account address is valid.
-   *
-   * @param address e.g. 0001-00000001-8B4E
-   * @returns {boolean}
-   */
-  static validateAddress (address) {
-    if (!address) {
-      return false
-    }
-
-    const parts = this.splitAddress(address)
-    if (!parts || !parts.nodeId || !parts.userAccountId || !parts.checksum) {
-      return false
-    }
-
-    return parts.checksum ===
-      this.addressChecksum(parts.nodeId, parts.userAccountId)
-  }
-
-  /**
-   * Checks if ADS public or secret key is valid.
-   *
-   * @param key (64 hexadecimal characters)
-   * @returns {boolean}
-   */
-  validateKey (key) {
-    if (!key) {
-      return false
-    }
-
-    const keyRegexp = /^[0-9a-fA-F]{64}$/
-    return keyRegexp.test(key)
-  }
+  static addressChecksum = addressChecksum
+  static compareAddresses = compareAddresses
+  static compareAddressesByNode = compareAddressesByNode
+  static formatAddress = formatAddress
+  static splitAddress = splitAddress
+  static validateAddress = validateAddress
+  static validateEthAddress = validateEthAddress
+  static validateKey = validateKey
 
   /**
    * Returns public key derived from secret key.
@@ -530,18 +59,20 @@ class Ads {
    * @returns {string} secret key (64 hexadecimal characters)
    */
   static getSecretKey (seed) {
-    return Hex.byteToHex(Ed25519.getSecretKey(seed)).toUpperCase()
+    return Hex.byteToHex(
+      Ed25519.getSecretKey(seed),
+    ).toUpperCase()
   }
 
   /**
    * Signs data with a secret key.
    *
-   * @param data data; in case of transaction: `tx.account_hashin` + `tx.data`
-   * @param publicKey public key 32 bytes
    * @param secretKey secret key 32 bytes
+   * @param publicKey public key 32 bytes
+   * @param data data (hexadecimal characters); in case of transaction: `tx.account_hashin` + `tx.data`
    * @returns {string} signature 64 bytes
    */
-  static sign (data, publicKey, secretKey) {
+  static sign (secretKey, publicKey, data) {
     return Hex.byteToHex(NaCl.sign.detached(
       Hex.hexToByte(data),
       Hex.hexToByte(secretKey + publicKey),
@@ -549,30 +80,29 @@ class Ads {
   }
 
   /**
-   * Validate empty string signature.
+   * Validates signature.
    *
    * @param signature (128 hexadecimal characters)
    * @param publicKey (64 hexadecimal characters)
-   * @param secretKey (64 hexadecimal characters)
+   * @param data data (hexadecimal characters)
    * @returns {boolean}
    */
-  static validateSignature (signature, publicKey, secretKey) {
-    try {
-      return sign('', secretKey + publicKey) === signature
-    }
-    catch (err) {
-      return false
-    }
+  static validateSignature (signature, publicKey, data) {
+    return NaCl.sign.detached.verify(
+      Hex.hexToByte(data),
+      Hex.hexToByte(signature),
+      Hex.hexToByte(publicKey),
+    )
   }
 
   /**
-   * Encode command data.
+   * Encodes command data.
    *
-   * @param command
+   * @param command command data object
    * @returns {string}
    */
   static encodeCommand (command) {
-    const encoder = new Encoder(command)
+    const encoder = new TxEncoder(command)
 
     switch (command[TX_FIELDS.TYPE]) {
       case TX_TYPES.BROADCAST:
@@ -606,14 +136,14 @@ class Ads {
   }
 
   /**
-   * Decode command data.
+   * Decodes command data.
    *
-   * @param data string
+   * @param data string encoded command (hexadecimal characters)
    * @returns {object}
    */
   static decodeCommand (data) {
-    const decoder = new Decoder(data).decode(TX_FIELDS.TYPE)
-    const type = decoder.lastDecodedField
+    const decoder = new TxDecoder(data)
+    const type = decoder.getType()
 
     switch (type) {
       case TX_TYPES.BROADCAST:
@@ -805,28 +335,31 @@ class Ads {
     return str.length > 0 ? str : '--- empty ---'
   }
 
-  static formatNumber (
-    amount, precision = 2, trim = true, decimal = '.', thousand = ',') {
-    return (Number(amount) || 0).toFixed(precision).
-      replace(/([0-9]{2})(0+)$/, trim ? '$1' : '$1$2').
-      replace(/\d(?=(\d{3})+\.)/g, `$&${thousand}`).
-      replace('.', decimal)
+  /**
+   * Formats ADS amount
+   *
+   * @param amount
+   * @param precision
+   * @param trim
+   * @param decimal
+   * @param thousand
+   * @returns {*}
+   */
+  static formatAdsMoney (amount, precision = 4, trim = false, decimal = '.', thousand = ',') {
+    return formatNumber(amount, precision, trim, decimal, thousand)
   }
 
-  static formatPercent (
-    amount, precision = 2, trim = false, decimal = '.', thousand = ',') {
-    return `${this.formatNumber(100 * (Number(amount) || 0), precision, trim,
-      decimal,
-      thousand)}%`
-  }
-
-  static formatAdsMoney (
-    amount, precision = 4, trim = false, decimal = '.', thousand = ',') {
-    return this.formatNumber(amount, precision, trim, decimal, thousand)
-  }
-
-  static formatClickMoney (
-    value, precision = 11, trim = false, decimal = '.', thousand = ',') {
+  /**
+   * Formats ADS amount in clicks
+   *
+   * @param value
+   * @param precision
+   * @param trim
+   * @param decimal
+   * @param thousand
+   * @returns {string}
+   */
+  static formatClickMoney (value, precision = 11, trim = false, decimal = '.', thousand = ',') {
     const p = Math.max(precision, 2)
     let v = value
 
@@ -850,35 +383,45 @@ class Ads {
     )
   }
 
+  /**
+   * Converts ADS amount in clicks from string to number
+   *
+   * @param value
+   * @returns {BigNumber|null}
+   */
   static strToClicks (value) {
     const matches = value.match(/^([0-9]*)[.,]?([0-9]{0,11})[0-9]*$/)
-    return matches
-      ? new BigNumber(matches[1] + matches[2].padEnd(11, '0'))
-      : null
+    return matches ? new BigNumber(matches[1] + matches[2].padEnd(11, '0')) : null
   }
 
+  /**
+   * Calculates transaction fee.
+   *
+   * @param command command data object
+   * @returns {number}
+   */
   static calculateFee (command) {
-    const encoder = new Encoder(command)
+    const encoder = new TxEncoder(command)
     let length
     let fee = 0
     switch (command[TX_FIELDS.TYPE]) {
       case TX_TYPES.BROADCAST:
         length = (encoder.encode(TX_FIELDS.MSG).lastEncodedField.length / 2) - 2
-        fee = this.TX_MIN_FEE
+        fee = Ads.TX_MIN_FEE
         if (length > 32) {
-          fee += (length - 32) * this.TX_BROADCAST_FEE
+          fee += (length - 32) * Ads.TX_BROADCAST_FEE
         }
         break
 
       case TX_TYPES.CHANGE_ACCOUNT_KEY:
-        fee = this.TX_CHANGE_KEY_FEE
+        fee = Ads.TX_CHANGE_KEY_FEE
         break
 
       case TX_TYPES.SEND_ONE:
-        fee = command[TX_FIELDS.AMOUNT] * this.TX_LOCAL_TRANSFER_FEE
-        if (!this.compareAddressesByNode(command[TX_FIELDS.SENDER],
+        fee = command[TX_FIELDS.AMOUNT] * Ads.TX_LOCAL_TRANSFER_FEE
+        if (!Ads.compareAddressesByNode(command[TX_FIELDS.SENDER],
           command[TX_FIELDS.ADDRESS])) {
-          fee += command[TX_FIELDS.AMOUNT] * this.TX_REMOTE_TRANSFER_FEE
+          fee += command[TX_FIELDS.AMOUNT] * Ads.TX_REMOTE_TRANSFER_FEE
         }
         fee = Math.floor(fee)
         break
@@ -886,33 +429,31 @@ class Ads {
         break
     }
 
-    return Math.max(this.TX_MIN_FEE, fee)
-  }
-
-  static calculateChargedAmount (command) {
-    return this.calculateFee(command) + parseInt(command[TX_FIELDS.AMOUNT], 10)
-  }
-
-  static calculateReceivedAmount (externalFee, command) {
-    return Math.max(0,
-      parseInt(command[TX_FIELDS.AMOUNT], 10) - parseInt(externalFee, 10))
+    return Math.max(Ads.TX_MIN_FEE, fee)
   }
 
   /**
-   * Checks if ETH account address is valid.
+   * Calculates transaction total amount.
    *
-   * @param address e.g. 0001-00000001-8B4E
-   * @returns {boolean}
+   * @param command command data object
+   * @returns {number}
    */
-  static validateEthAddress (address) {
-    if (!address) {
-      return false
-    }
-    return /^(0x)?[0-9a-fA-F]{40}$/.test(address.trim())
+  static calculateChargedAmount (command) {
+    return Ads.calculateFee(command) + parseInt(command[TX_FIELDS.AMOUNT], 10)
+  }
+
+  /**
+   * Calculates transaction received amount.
+   *
+   * @param externalFee external fee in clicks
+   * @param command command data object
+   * @returns {number}
+   */
+  static calculateReceivedAmount (externalFee, command) {
+    return Math.max(0, parseInt(command[TX_FIELDS.AMOUNT], 10) - parseInt(externalFee, 10))
   }
 }
 
 exports.Ads = Ads
 exports.TX_TYPES = TX_TYPES
 exports.TX_FIELDS = TX_FIELDS
-export default Ads
