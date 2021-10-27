@@ -92,15 +92,25 @@ export class Crypto {
    * Signs data with a secret key.
    *
    * @param secretKey secret key 32 bytes
-   * @param publicKey public key 32 bytes
    * @param data data (hexadecimal characters); in case of transaction: `tx.account_hashin` + `tx.data`
    * @returns {string} signature 64 bytes
    */
-  static sign (secretKey, publicKey, data) {
+  static sign (secretKey, data) {
     return Hex.byteToHex(NaCl.sign.detached(
       Hex.hexToByte(data),
-      Hex.hexToByte(secretKey + publicKey),
+      Hex.hexToByte(secretKey + Crypto.getPublicKey(secretKey)),
     ))
+  }
+
+  /**
+   * Signs text with a secret key.
+   *
+   * @param secretKey secret key 32 bytes
+   * @param text data text
+   * @returns {string} signature 64 bytes
+   */
+  static signText (secretKey, text) {
+    return Crypto.sign(secretKey, Hex.stringToHex(text))
   }
 
   /**

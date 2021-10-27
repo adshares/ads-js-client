@@ -10,21 +10,14 @@ export default [
     output: {
       name: 'Ads',
       file: pkg.browser,
-      format: 'umd',
+      format: 'iife',
       globals: {
         crypto: 'Crypto'
       }
     },
     plugins: [
-      resolve({
-        // jsnext: true,
-        // main: false
-      }),
-      commonjs({
-        // include: [ "./src/ed25519.js", "node_modules/**" ],
-        // ignoreGlobal: false,
-        // sourceMap: false,
-      }),
+      resolve(),
+      commonjs(),
       babel({
         babelHelpers: 'runtime',
         exclude: ['node_modules/**'],
@@ -45,12 +38,12 @@ export default [
     external: [
       /@babel\/runtime/,
       'bignumber.js',
-      'crypto-js',
+      /crypto-js/,
       'jsonrpc-lite/jsonrpc',
       'tweetnacl',
     ],
     output: [
-      { file: pkg.main, format: 'cjs' },
+      { file: pkg.main, format: 'cjs', exports: 'default' },
       { file: pkg.module, format: 'es' },
     ],
     plugins: [

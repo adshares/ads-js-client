@@ -54,7 +54,8 @@ export default class TxEncoder {
         break
       }
       case TX_FIELDS.TIME: {
-        const time = Math.floor(val.getTime() / 1000)
+        const date = typeof val === 'object' ? val : new Date(val)
+        const time = Math.floor(date.getTime() / 1000)
         data = Hex.fixByteOrder(this.pad(time.toString(16), 8))
         break
       }

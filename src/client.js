@@ -1,15 +1,15 @@
 import RPC from 'jsonrpc-lite/jsonrpc'
 import Hex from './hex'
-import ADS from './ads'
+import Tx from './tx'
 import { RpcError } from './errors'
 
-export default class AdsClient {
+export default class Client {
 
   static MAINNET_RPC_HOST = 'https://rpc.adshares.net/'
   static TESTNET_RPC_HOST = 'https://rpc.e11.click/'
 
   constructor (testnet = false) {
-    this.host = testnet ? self.TESTNET_RPC_HOST : self.MAINNET_RPC_HOST
+    this.host = testnet ? Client.TESTNET_RPC_HOST : Client.MAINNET_RPC_HOST
   }
 
   send (data) {
@@ -43,7 +43,7 @@ export default class AdsClient {
 
   getAccount (address) {
     return this.request(
-      ADS.TX_TYPES.GET_ACCOUNT, {
+      Tx.TX_TYPES.GET_ACCOUNT, {
         address,
       },
     ).then((response) => {
@@ -63,7 +63,7 @@ export default class AdsClient {
 
   findAccounts (publicKey) {
     return this.request(
-      ADS.TX_TYPES.FIND_ACCOUNTS, {
+      Tx.TX_TYPES.FIND_ACCOUNTS, {
         public_key: publicKey,
       },
     ).then((response) => {
@@ -83,7 +83,7 @@ export default class AdsClient {
 
   getNodes () {
     return this.request(
-      ADS.TX_TYPES.GET_BLOCK, {
+      Tx.TX_TYPES.GET_BLOCK, {
         block: '',
       },
     ).then((response) => {
@@ -115,7 +115,7 @@ export default class AdsClient {
 
   sendTransaction (data, signature, host) {
     return this.request(
-      ADS.TX_TYPES.SEND_AGAIN, {
+      Tx.TX_TYPES.SEND_AGAIN, {
         data,
         signature,
         _host: host,
@@ -134,7 +134,7 @@ export default class AdsClient {
   }
 
   getGateways () {
-    return this.request(ADS.TX_TYPES.GET_GATEWAYS).then((response) => {
+    return this.request(Tx.TX_TYPES.GET_GATEWAYS).then((response) => {
       if (!response || !response.gateways) {
         throw new RpcError('RPC Server Response Error', response)
       }
@@ -143,7 +143,7 @@ export default class AdsClient {
   }
 
   getGatewayFee (gatewayCode, amount, address) {
-    return this.request(ADS.TX_TYPES.GET_GATEWAY_FEE, {
+    return this.request(Tx.TX_TYPES.GET_GATEWAY_FEE, {
       code: gatewayCode,
       amount: parseInt(amount, 10),
       address,
@@ -156,7 +156,7 @@ export default class AdsClient {
   }
 
   getTimestamp () {
-    return this.request(ADS.TX_TYPES.GET_TIMESTAMP).then((response) => {
+    return this.request(Tx.TX_TYPES.GET_TIMESTAMP).then((response) => {
       if (!response || !response.timestamp) {
         throw new RpcError('RPC Server Response Error', response)
       }
@@ -164,5 +164,3 @@ export default class AdsClient {
     })
   }
 }
-
-exports.AdsClient = AdsClient
