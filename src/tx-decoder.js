@@ -10,6 +10,9 @@ export default class TxDecoder {
     this.resp = {}
     this.parsed = null
     this.decode(TX_FIELDS.TYPE)
+    if (this.type !== TX_TYPES.GET_FIELDS) {
+      this.decode(TX_FIELDS.SENDER)
+    }
   }
 
   #validateLength (fieldName, expectedLength, strict) {
@@ -174,12 +177,12 @@ export default class TxDecoder {
     this.#validateLength('extra', 0, true)
   }
 
-  getType () {
+  get type () {
     return this.resp[TX_FIELDS.TYPE]
   }
 
-  get type () {
-    return this.resp[TX_FIELDS.TYPE]
+  get sender () {
+    return this.resp[TX_FIELDS.SENDER]
   }
 
   get lastDecodedField () {

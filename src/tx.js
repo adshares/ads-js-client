@@ -96,31 +96,27 @@ export default class Tx {
 
     switch (decoder.type) {
       case TX_TYPES.BROADCAST:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.MSG_LEN).
           decode(TX_FIELDS.MSG)
         break
 
       case TX_TYPES.CHANGE_ACCOUNT_KEY:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.PUBLIC_KEY)
         break
 
       case TX_TYPES.CHANGE_NODE_KEY:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.NODE_ID).
           decode(TX_FIELDS.PUBLIC_KEY)
         break
 
       case TX_TYPES.CREATE_ACCOUNT:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.NODE_ID).
           skip(8).
@@ -128,103 +124,88 @@ export default class Tx {
         break
 
       case TX_TYPES.CREATE_NODE:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME)
         break
 
       case TX_TYPES.GET_ACCOUNT:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.ADDRESS).
+        decoder.decode(TX_FIELDS.ADDRESS).
           decode(TX_FIELDS.TIME)
         break
 
       case TX_TYPES.GET_ACCOUNTS:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.BLOCK_ID)// previous block id
           .decode(TX_FIELDS.NODE_ID)
         break
 
       case TX_TYPES.GET_BLOCK:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.BLOCK_ID)// previous block id
+        decoder.decode(TX_FIELDS.BLOCK_ID)// previous block id
           .decode(TX_FIELDS.TIME)
         break
 
       case TX_TYPES.GET_BLOCKS:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.BLOCK_ID_FROM).
           decode(TX_FIELDS.BLOCK_ID_TO)
         break
 
       case TX_TYPES.GET_BROADCAST:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.BLOCK_ID).
+        decoder.decode(TX_FIELDS.BLOCK_ID).
           decode(TX_FIELDS.TIME)
         break
 
       case TX_TYPES.GET_LOG:
-        decoder.decode(TX_FIELDS.SENDER).decode(TX_FIELDS.TIME)
+        decoder.decode(TX_FIELDS.TIME)
         break
 
       case TX_TYPES.GET_MESSAGE:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.BLOCK_ID).
           decode(TX_FIELDS.NODE_ID).
           decode(TX_FIELDS.NODE_MESSAGE_ID)
         break
 
       case TX_TYPES.GET_MESSAGE_LIST:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.BLOCK_ID)
         break
 
       case TX_TYPES.GET_SIGNATURES:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.BLOCK_ID)
         break
 
       case TX_TYPES.GET_TRANSACTION:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.TRANSACTION_ID)
         break
 
       case TX_TYPES.GET_VIPKEYS:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.TIME).
+        decoder.decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.VIP_HASH)
         break
 
       case TX_TYPES.LOG_ACCOUNT:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME)
         break
 
       case TX_TYPES.RETRIEVE_FUNDS:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.ADDRESS)
         break
 
       case TX_TYPES.SEND_MANY:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.WIRE_COUNT).
           decode(TX_FIELDS.WIRES)
         break
 
       case TX_TYPES.SEND_ONE:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.ADDRESS).
           decode(TX_FIELDS.AMOUNT).
@@ -233,8 +214,7 @@ export default class Tx {
 
       case TX_TYPES.SET_ACCOUNT_STATUS:
       case TX_TYPES.UNSET_ACCOUNT_STATUS:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.ADDRESS).
           decode(TX_FIELDS.STATUS_ACCOUNT)
@@ -242,8 +222,7 @@ export default class Tx {
 
       case TX_TYPES.SET_NODE_STATUS:
       case TX_TYPES.UNSET_NODE_STATUS:
-        decoder.decode(TX_FIELDS.SENDER).
-          decode(TX_FIELDS.MESSAGE_ID).
+        decoder.decode(TX_FIELDS.MESSAGE_ID).
           decode(TX_FIELDS.TIME).
           decode(TX_FIELDS.NODE_ID).
           decode(TX_FIELDS.STATUS_NODE)
@@ -258,6 +237,14 @@ export default class Tx {
 
     decoder.final()
     return decoder.decodedData
+  }
+
+  static decodeType (data) {
+    return (new TxDecoder(data)).type
+  }
+
+  static decodeSender (data) {
+    return (new TxDecoder(data)).sender
   }
 
   /**

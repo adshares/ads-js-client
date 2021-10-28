@@ -2,6 +2,14 @@ const Ads = require('../dist/index.cjs')
 
 // ---- decode ---------------------------------------------------------------------------------------------------------
 
+test('decode type', () => {
+  expect(Ads.Tx.decodeType('0301000000000001000000A1679B5B010000')).toEqual(Ads.Tx.TX_TYPES.BROADCAST)
+})
+
+test('decode sender', () => {
+  expect(Ads.Tx.decodeSender('0301000000000001000000A1679B5B010000')).toEqual('0001-00000000-9B6F')
+})
+
 test('decode broadcast', () => {
   // {"type":"broadcast","sender":"0001-00000000-9B6F","messageId":1,"time":"2018-09-14T07:47:45.000Z","messageLength":1,"message":"00"}
   const data = '0301000000000001000000A1679B5B010000'
@@ -358,7 +366,7 @@ test('decode unset_node_status', () => {
 })
 
 test('decode error `Unknown type`', () => {
-  const data = 'FF00'
+  const data = 'FF00000100000001'
   expect(() => {
     Ads.Tx.decodeCommand(data)
   }).toThrow('Unknown type')

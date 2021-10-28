@@ -2,6 +2,7 @@ import RPC from 'jsonrpc-lite/jsonrpc'
 import Hex from './hex'
 import Tx from './tx'
 import { RpcError } from './errors'
+import { splitAddress } from './utils'
 
 export default class Client {
 
@@ -99,6 +100,10 @@ export default class Client {
     })
   }
 
+  getNode (nodeId) {
+    return this.getNodes().then(nodes => nodes.find(node => node.id === nodeId))
+  }
+
   createFreeAccount (publicKey, confirm) {
     return this.request(
       'create_free_account', {
@@ -114,22 +119,26 @@ export default class Client {
   }
 
   sendTransaction (data, signature, host) {
-    return this.request(
-      Tx.TX_TYPES.SEND_AGAIN, {
-        data,
-        signature,
-        _host: host,
-      },
-    ).then((response) => {
-      if (!response || !response.tx) {
-        throw new RpcError('RPC Server Response Error', response)
-      }
-      return {
-        id: response.tx.id,
-        fee: response.tx.fee,
-        accountHash: response.tx.account_hashout,
-        accountMessageId: response.tx.account_msid,
-      }
+
+    const sender = Tx.decodeSender(data)
+    return this.getNode(splitAddress(sender).nodeId).then(node => {
+      return this.request(
+        Tx.TX_TYPES.SEND_AGAIN, {
+          data,
+          signature,
+          _host: node.ipv4,
+        },
+      ).then((response) => {
+        if (!response || !response.tx) {
+          throw new RpcError('RPC Server Response Error', response)
+        }
+        return {
+          id: response.tx.id,
+          fee: response.tx.fee,
+          accountHash: response.tx.account_hashout,
+          accountMessageId: response.tx.account_msid,
+        }
+      })
     })
   }
 
