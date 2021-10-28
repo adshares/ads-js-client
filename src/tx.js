@@ -17,7 +17,7 @@ export default class Tx {
   static encodeCommand (command) {
     const encoder = new TxEncoder(command)
 
-    switch (command[TX_FIELDS.TYPE]) {
+    switch (encoder.type) {
       case TX_TYPES.BROADCAST:
         encoder.encode(TX_FIELDS.SENDER).
           encode(TX_FIELDS.MESSAGE_ID).
@@ -32,6 +32,15 @@ export default class Tx {
           encode(TX_FIELDS.PUBLIC_KEY)
         break
 
+      case TX_TYPES.CREATE_ACCOUNT:
+        encoder.encode(TX_FIELDS.SENDER).
+          encode(TX_FIELDS.MESSAGE_ID).
+          encode(TX_FIELDS.TIME).
+          encode(TX_FIELDS.NODE_ID).
+          fill(8).
+          encode(TX_FIELDS.PUBLIC_KEY)
+        break
+
       case TX_TYPES.SEND_ONE:
         encoder.encode(TX_FIELDS.SENDER).
           encode(TX_FIELDS.MESSAGE_ID).
@@ -41,8 +50,36 @@ export default class Tx {
           encode(TX_FIELDS.MSG)
         break
 
+      case TX_TYPES.CHANGE_NODE_KEY:
+      case TX_TYPES.CREATE_NODE:
+      case TX_TYPES.LOG_ACCOUNT:
+      case TX_TYPES.GET_ACCOUNT:
+      case TX_TYPES.GET_ACCOUNTS:
+      case TX_TYPES.FIND_ACCOUNTS:
+      case TX_TYPES.GET_BLOCK:
+      case TX_TYPES.GET_BLOCKS:
+      case TX_TYPES.GET_BROADCAST:
+      case TX_TYPES.GET_FIELDS:
+      case TX_TYPES.GET_LOG:
+      case TX_TYPES.GET_MESSAGE:
+      case TX_TYPES.GET_MESSAGE_LIST:
+      case TX_TYPES.GET_SIGNATURES:
+      case TX_TYPES.GET_TRANSACTION:
+      case TX_TYPES.GET_VIPKEYS:
+      case TX_TYPES.RETRIEVE_FUNDS:
+      case TX_TYPES.SEND_AGAIN:
+      case TX_TYPES.SEND_MANY:
+      case TX_TYPES.SET_ACCOUNT_STATUS:
+      case TX_TYPES.SET_NODE_STATUS:
+      case TX_TYPES.UNSET_ACCOUNT_STATUS:
+      case TX_TYPES.UNSET_NODE_STATUS:
+      case TX_TYPES.GET_GATEWAYS:
+      case TX_TYPES.GET_GATEWAY_FEE:
+      case TX_TYPES.GET_TIMESTAMP:
+        throw new TransactionDataError(`Unsupported type of transaction ${command[TX_FIELDS.TYPE]}`)
+
       default:
-        throw new TransactionDataError('Unknown type of transaction')
+        throw new TransactionDataError(`Unknown type of transaction ${command[TX_FIELDS.TYPE]}`)
     }
 
     return encoder.encodedData.toUpperCase()
@@ -56,9 +93,8 @@ export default class Tx {
    */
   static decodeCommand (data) {
     const decoder = new TxDecoder(data)
-    const type = decoder.getType()
 
-    switch (type) {
+    switch (decoder.type) {
       case TX_TYPES.BROADCAST:
         decoder.decode(TX_FIELDS.SENDER).
           decode(TX_FIELDS.MESSAGE_ID).
@@ -220,6 +256,7 @@ export default class Tx {
         throw new TransactionDataError('Unknown type of transaction')
     }
 
+    decoder.final()
     return decoder.decodedData
   }
 
