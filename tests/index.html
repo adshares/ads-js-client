@@ -2,254 +2,256 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ADS JS Client</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="../dist/index.js"></script>
     <style>
-        td {
-            padding: 2px 5px;
+        code {
+            max-width: 675px;
+            display: inline-block;
         }
 
-        input[type="text"] {
-            width: 225px;
+        table tr td:first-of-type {
+            width: 100px;
+            vertical-align: middle;
+        }
+
+        table tr td:first-of-type + td {
+            width: 350px;
+        }
+
+        table tr td:first-of-type + td + td {
+            width: 150px;
         }
     </style>
 </head>
 <body>
-<table>
-    <tr>
-        <td><label for="testnet">Testnet:</label></td>
-        <td><input type="checkbox" id="testnet" checked/></td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>
-            <hr/>
-        </td>
-        <td style="text-align: center">TX</td>
-        <td>
-            <hr/>
-        </td>
-    </tr>
-    <tr>
-        <td><label for="data">TX data:</label></td>
-        <td>
-            <select id="datasel">
-                <option value="04010030000000010000006F0A645B0100010000000000C16FF28623000005465737420776961646F6D6F7363695465737420776961646F6D6F7363694">
-                    send_one
-                </option>
-                <option value="050100000000000400000069C0485B020001000100000000A0724E1809000001000200000000A0724E18090000">
-                    send_many
-                </option>
-                <option value="0301000000000001000000A1679B5B010000">broadcast</option>
-                <option value="090100000000000500000077CE485BEAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E">
-                    change_account_key
-                </option>
-                <option value="0A010000000000010000005CC2485B0100EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E">
-                    change_node_key
-                </option>
-                <option value="0601000000000004000000AB989B5B010000000000A9C0D972D8AAB73805EC4A28291E052E3B5FAFE0ADC9D724917054E5E2690363">
-                    create_account
-                </option>
-                <option value="070100000000000100000047C9485B">create_node</option>
-                <option value="100100000000000100010000001E6A9B5B">get_account</option>
-                <option value="180100000000009EA49B5B60A49B5B0200">get_accounts</option>
-                <option value="1701000000000000AC9B5B27AC9B5B">get_block</option>
-                <option value="130100000000003AAD9B5B20AD9B5B00000000">get_blocks</option>
-                <option value="12010000000000000000006FC39B5B">get_broadcast</option>
-                <option value="1B">get_fields</option>
-                <option value="11010000000000E3C59B5B">get_log</option>
-                <option value="1A020001000000E693485BC093485B020049000000">get_message</option>
-                <option value="19020001000000E693485BC093485B">get_message_list</option>
-                <option value="1601000000000005CF9B5B20BF9B5B">get_signatures</option>
-                <option value="140100000000009253475B0100070000000200">get_transaction</option>
-                <option value="150100000000008ECD9B5B2A4831F1459C42E2CCF5C4E202C3301F94C381B6FB253DFED21DD015180D9507">
-                    get_vipkeys
-                </option>
-                <option value="0F02000100000001000000D99E485B">log_account</option>
-                <option value="0801000000000002000000BBC4485B020001000000">retrieve_funds</option>
-                <option value="0B01000000000001000000A1B2285B0100000000000200">set_account_status</option>
-                <option value="0C0100000000007900000084B4285B0E0000000080">set_node_status</option>
-                <option value="0D0100000000000A000000A4B2285B0100000000002000">unset_account_status</option>
-                <option value="0E01000100000025000000C7B4285B030002000000">unset_node_status</option>
-            </select><br/>
-            <input type="text" id="data" value=""/>
-        </td>
-        <td>
-            <button id="btn-decode-tx">Decode</button>
-        </td>
-        <td><b id="decode-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="encode-data">Command:</label></td>
-        <td><input type="text" id="encode-data"
-                   value='{"type":"send_one","sender":"0001-00000030-AD3C","messageId":1,"time":"2018-08-03T07:55:27.000Z","address":"0001-00000001-8B4E","amount":"10000000000000000","message":"0005465737420776961646f6d6f7363695465737420776961646f6d6f7363694"}'/>
-        </td>
-        <td>
-            <button id="btn-encode">Encode</button>
-        </td>
-        <td><b id="encode-status"></b></td>
-    </tr>
-    <tr>
-        <td>
-            <hr/>
-        </td>
-        <td style="text-align: center">Crypto</td>
-        <td>
-            <hr/>
-        </td>
-    </tr>
-    <tr>
-        <td><label for="master-seed">Seed:</label></td>
-        <td><input type="text" id="master-seed"
-                   value="CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB"/></td>
-        <td>
-            <button id="btn-master-key">Get master key</button>
-        </td>
-        <td><b id="master-key-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="master-seed">Seed:</label></td>
-        <td><input type="text" id="secret-seed" value="a"/></td>
-        <td>
-            <button id="btn-secret-key">Get secret key</button>
-        </td>
-        <td><b id="secret-key-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="secret-key">Secret key:</label></td>
-        <td><input type="text" id="secret-key"
-                   value="CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB"/></td>
-        <td>
-            <button id="btn-public-key">Get public key</button>
-        </td>
-        <td><b id="public-key-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="sign-data">Data:</label></td>
-        <td><input type="text" id="sign-data" value="74657374"/></td>
-        <td>
-            <button id="btn-sign-data">Sign</button>
-        </td>
-        <td><b id="sign-data-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="sign-text">Text:</label></td>
-        <td><input type="text" id="sign-text" value="test"/></td>
-        <td>
-            <button id="btn-sign-text">Sign</button>
-        </td>
-        <td><b id="sign-text-status"></b></td>
-    </tr>
-    <tr>
-        <td>
-            <hr/>
-        </td>
-        <td style="text-align: center">Wallet</td>
-        <td>
-            <hr/>
-        </td>
-    </tr>
-    <tr>
-        <td><label for="chrome-id">Chrome Id:</label></td>
-        <td><input type="text" id="chrome-id" value="algblmhagnobbnmakepomicmfljlbehg"/></td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><label for="mozilla-id">Mozilla Id:</label></td>
-        <td><input type="text" id="mozilla-id" value="f6f321f2-9f13-403f-8832-7b593f35caa1"/></td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><label for="ping-data">Data:</label></td>
-        <td><input type="text" id="ping-data" value="test"/></td>
-        <td>
-            <button id="btn-ping">Ping</button>
-        </td>
-        <td><b id="ping-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="authenticate-nonce">Nonce:</label></td>
-        <td><input type="text" id="authenticate-nonce" value="123456"/></td>
-        <td>
-            <button id="btn-authenticate">Authenticate</button>
-        </td>
-        <td><b id="authenticate-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="wallet-sign-public-key">Public key:</label></td>
-        <td><input type="text" id="wallet-sign-public-key"
-                   value="EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E"/></td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><label for="wallet-sign-hashin">Hashin:</label></td>
-        <td><input type="text" id="wallet-sign-hashin"
-                   value="AFB2FAACA5CB0C41A9F60AC84FA6D1A39C2D875F70FEEC3EEC70319962874FEC"/>
-        </td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><label for="wallet-sign-data">TX data:</label></td>
-        <td><input type="text" id="wallet-sign-data"
-                   value="04010030000000010000006F0A645B0100010000000000C16FF28623000005465737420776961646F6D6F7363695465737420776961646F6D6F7363694"/>
-        </td>
-        <td>
-            <button id="btn-wallet-sign">Sign</button>
-            <button id="btn-wallet-send">Send</button>
-        </td>
-        <td><b id="wallet-sign-status"></b></td>
-    </tr>
-    <tr>
-        <td>
-            <hr/>
-        </td>
-        <td style="text-align: center">RPC</td>
-        <td>
-            <hr/>
-        </td>
-    </tr>
-    <tr>
-        <td>Timestamp</td>
-        <td></td>
-        <td>
-            <button id="btn-rpc-timestamp">Get timestamp</button>
-        </td>
-        <td><b id="rpc-timestamp-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="rpc-account-address">Address:</label></td>
-        <td><input type="text" id="rpc-account-address" value="0001-00000030-AD3C"/>
-        </td>
-        <td>
-            <button id="btn-rpc-account">Get account</button>
-        </td>
-        <td><b id="rpc-account-status"></b></td>
-    </tr>
-    <tr>
-        <td><label for="rpc-send-data">TX data:</label></td>
-        <td><input type="text" id="rpc-send-data"
-                   value="04010030000000010000006F0A645B0100010000000000C16FF28623000005465737420776961646F6D6F7363695465737420776961646F6D6F7363694"/>
-        </td>
-        <td></td>
-        <td></td>
-    </tr>
-    <tr>
-        <td><label for="rpc-send-signature">Signature:</label></td>
-        <td><input type="text" id="rpc-send-signature"
-                   value="AF75BED72FF4FAE0D0981CB97424CFAB59137B9AA803D4DE122750DD105DF1DE2B0F3BB5485AAF0F8329F24DEEFE4BF14521D6E1627108414D1436C69979D507"/>
-        </td>
-        <td>
-            <button id="btn-rpc-send">Send</button>
-        </td>
-        <td><b id="rpc-send-status"></b></td>
-    </tr>
-</table>
+<div class="container">
 
+    <table class="table">
+        <tr>
+            <td>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="testnet">
+                    <label class="form-check-label" for="testnet">
+                        Testnet
+                    </label>
+                </div>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <th colspan="4">TX</th>
+        </tr>
+        <tr>
+            <td><label for="data">TX data:</label></td>
+            <td>
+                <select class="form-select" id="datasel">
+                    <option value="04010030000000010000006F0A645B0100010000000000C16FF28623000005465737420776961646F6D6F7363695465737420776961646F6D6F7363694">
+                        send_one
+                    </option>
+                    <option value="050100000000000400000069C0485B020001000100000000A0724E1809000001000200000000A0724E18090000">
+                        send_many
+                    </option>
+                    <option value="0301000000000001000000A1679B5B010000">broadcast</option>
+                    <option value="090100000000000500000077CE485BEAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E">
+                        change_account_key
+                    </option>
+                    <option value="0A010000000000010000005CC2485B0100EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E">
+                        change_node_key
+                    </option>
+                    <option value="0601000000000004000000AB989B5B010000000000A9C0D972D8AAB73805EC4A28291E052E3B5FAFE0ADC9D724917054E5E2690363">
+                        create_account
+                    </option>
+                    <option value="070100000000000100000047C9485B">create_node</option>
+                    <option value="100100000000000100010000001E6A9B5B">get_account</option>
+                    <option value="180100000000009EA49B5B60A49B5B0200">get_accounts</option>
+                    <option value="1701000000000000AC9B5B27AC9B5B">get_block</option>
+                    <option value="130100000000003AAD9B5B20AD9B5B00000000">get_blocks</option>
+                    <option value="12010000000000000000006FC39B5B">get_broadcast</option>
+                    <option value="1B">get_fields</option>
+                    <option value="11010000000000E3C59B5B">get_log</option>
+                    <option value="1A020001000000E693485BC093485B020049000000">get_message</option>
+                    <option value="19020001000000E693485BC093485B">get_message_list</option>
+                    <option value="1601000000000005CF9B5B20BF9B5B">get_signatures</option>
+                    <option value="140100000000009253475B0100070000000200">get_transaction</option>
+                    <option value="150100000000008ECD9B5B2A4831F1459C42E2CCF5C4E202C3301F94C381B6FB253DFED21DD015180D9507">
+                        get_vipkeys
+                    </option>
+                    <option value="0F02000100000001000000D99E485B">log_account</option>
+                    <option value="0801000000000002000000BBC4485B020001000000">retrieve_funds</option>
+                    <option value="0B01000000000001000000A1B2285B0100000000000200">set_account_status</option>
+                    <option value="0C0100000000007900000084B4285B0E0000000080">set_node_status</option>
+                    <option value="0D0100000000000A000000A4B2285B0100000000002000">unset_account_status</option>
+                    <option value="0E01000100000025000000C7B4285B030002000000">unset_node_status</option>
+                </select><br/>
+                <input type="text" class="form-control" id="data" value=""/>
+            </td>
+            <td class="align-bottom">
+                <button class="btn btn-primary" id="btn-decode-tx">Decode</button>
+            </td>
+            <td><code id="decode-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="encode-data">Command:</label></td>
+            <td><input type="text" class="form-control" id="encode-data"
+                       value='{"type":"send_one","sender":"0001-00000030-AD3C","messageId":1,"time":"2018-08-03T07:55:27.000Z","address":"0001-00000001-8B4E","amount":"10000000000000000","message":"0005465737420776961646f6d6f7363695465737420776961646f6d6f7363694"}'/>
+            </td>
+            <td>
+                <button class="btn btn-primary" id="btn-encode">Encode</button>
+            </td>
+            <td><code id="encode-status"></code></td>
+        </tr>
+        <tr>
+            <th colspan="4">Crypto
+            </td>
+        </tr>
+        <tr>
+            <td><label for="master-seed">Seed:</label></td>
+            <td><input type="text" class="form-control" id="master-seed"
+                       value="CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-master-key">Get master key</button>
+            </td>
+            <td><code id="master-key-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="master-seed">Seed:</label></td>
+            <td><input type="text" class="form-control" id="secret-seed" value="a"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-secret-key">Get secret key</button>
+            </td>
+            <td><code id="secret-key-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="secret-key">Secret key:</label></td>
+            <td><input type="text" class="form-control" id="secret-key"
+                       value="CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-public-key">Get public key</button>
+            </td>
+            <td><code id="public-key-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="sign-data">Data:</label></td>
+            <td><input type="text" class="form-control" id="sign-data" value="74657374"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-sign-data">Sign</button>
+            </td>
+            <td><code id="sign-data-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="sign-text">Text:</label></td>
+            <td><input type="text" class="form-control" id="sign-text" value="test"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-sign-text">Sign</button>
+            </td>
+            <td><code id="sign-text-status"></code></td>
+        </tr>
+        <tr>
+            <th colspan="4">Wallet
+            </td>
+        </tr>
+        <tr>
+            <td><label for="chrome-id">Chrome Id:</label></td>
+            <td><input type="text" class="form-control" id="chrome-id" value="algblmhagnobbnmakepomicmfljlbehg"/></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><label for="mozilla-id">Mozilla Id:</label></td>
+            <td><input type="text" class="form-control" id="mozilla-id" value="f6f321f2-9f13-403f-8832-7b593f35caa1"/>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><label for="ping-data">Data:</label></td>
+            <td><input type="text" class="form-control" id="ping-data" value="test"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-ping">Ping</button>
+            </td>
+            <td><code id="ping-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="authenticate-nonce">Nonce:</label></td>
+            <td><input type="text" class="form-control" id="authenticate-nonce" value="123456"/></td>
+            <td>
+                <button class="btn btn-primary" id="btn-authenticate">Authenticate</button>
+            </td>
+            <td><code id="authenticate-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="wallet-sign-public-key">Public key:</label></td>
+            <td><input type="text" class="form-control" id="wallet-sign-public-key"
+                       value="EAE1C8793B5597C4B3F490E76AC31172C439690F8EE14142BB851A61F9A49F0E"/></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><label for="wallet-sign-hashin">Hashin:</label></td>
+            <td><input type="text" class="form-control" id="wallet-sign-hashin"
+                       value="AFB2FAACA5CB0C41A9F60AC84FA6D1A39C2D875F70FEEC3EEC70319962874FEC"/>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><label for="wallet-sign-data">TX data:</label></td>
+            <td><input type="text" class="form-control" id="wallet-sign-data"
+                       value="04010030000000010000006F0A645B0100010000000000C16FF28623000005465737420776961646F6D6F7363695465737420776961646F6D6F7363694"/>
+            </td>
+            <td>
+                <button class="btn btn-primary" id="btn-wallet-sign">Sign</button>
+                <button class="btn btn-primary" id="btn-wallet-send">Send</button>
+            </td>
+            <td><code id="wallet-sign-status"></code></td>
+        </tr>
+        <tr>
+            <th colspan="4">RPC
+            </td>
+        </tr>
+        <tr>
+            <td>Timestamp</td>
+            <td></td>
+            <td>
+                <button class="btn btn-primary" id="btn-rpc-timestamp">Get timestamp</button>
+            </td>
+            <td><code id="rpc-timestamp-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="rpc-account-address">Address:</label></td>
+            <td><input type="text" class="form-control" id="rpc-account-address" value="0001-00000030-AD3C"/>
+            </td>
+            <td>
+                <button class="btn btn-primary" id="btn-rpc-account">Get account</button>
+            </td>
+            <td><code id="rpc-account-status"></code></td>
+        </tr>
+        <tr>
+            <td><label for="rpc-send-data">TX data:</label></td>
+            <td><input type="text" class="form-control" id="rpc-send-data"
+                       value="04010030000000010000006F0A645B0100010000000000C16FF28623000005465737420776961646F6D6F7363695465737420776961646F6D6F7363694"/>
+            </td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><label for="rpc-send-signature">Signature:</label></td>
+            <td><input type="text" class="form-control" id="rpc-send-signature"
+                       value="AF75BED72FF4FAE0D0981CB97424CFAB59137B9AA803D4DE122750DD105DF1DE2B0F3BB5485AAF0F8329F24DEEFE4BF14521D6E1627108414D1436C69979D507"/>
+            </td>
+            <td>
+                <button class="btn btn-primary" id="btn-rpc-send">Send</button>
+            </td>
+            <td><code id="rpc-send-status"></code></td>
+        </tr>
+    </table>
+</div>
 <script type="text/javascript">
   const datasel = document.getElementById('datasel')
   document.getElementById('data').value = datasel.value
