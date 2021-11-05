@@ -102,7 +102,11 @@ export default class Wallet {
     return this.#sendMessage('sign', { data, hash, publicKey }, { newTab })
   }
 
-  sendTransaction (data, hash, publicKey, newTab = false) {
-    return this.#sendMessage('send', { data, hash, publicKey }, { newTab })
+  broadcast (message) {
+    return this.#sendMessage('broadcast', { message })
+  }
+
+  sendOne (address, amount, message) {
+    return this.#sendMessage('send_one', { address, amount, message })
   }
 }

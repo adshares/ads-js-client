@@ -41,6 +41,15 @@ export default class Ads {
   static Tx = Tx
   static Wallet = Wallet
 
+  static broadcast (account, message) {
+    const command = { type: Tx.TX_TYPES.BROADCAST }
+    command[Tx.TX_FIELDS.SENDER] = account.address
+    command[Tx.TX_FIELDS.MESSAGE_ID] = account.messageId
+    command[Tx.TX_FIELDS.TIME] = time
+    command[Tx.TX_FIELDS.MSG] = message
+    return Tx.encodeCommand(command)
+  }
+
   /**
    * Formats ADS amount
    *
