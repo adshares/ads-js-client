@@ -10,8 +10,18 @@ export default class Wallet {
     this.queue = []
   }
 
+  #extensionUrl () {
+    return typeof InstallTrigger !== 'undefined' ?
+      'moz-extension://' + this.mozillaExtensionId :
+      'chrome-extension://' + this.chromeExtensionId
+  }
+
   #init () {
     return new Promise((resolve, reject) => {
+      const isChromium = typeof window.chrome !== 'undefined'
+      if (!isChromium) {
+        reject('Your browser is not supported')
+      }
       if (this.port) {
         return this.initialized ?
           resolve(this.port) :
@@ -20,17 +30,18 @@ export default class Wallet {
 
       let channel = new MessageChannel()
       this.port = channel.port1
+      let timer
 
       let onReady = (message) => {
         // when the iframe is ready to receive messages, it will send the string 'ready'
+        clearTimeout(timer)
         if (message.data && message.data === 'ready') {
           this.port.removeEventListener('message', onReady)
           const base = this
           this.port.onmessage = (event) => base.#onMessage(event)
           this.initialized = true
           resolve(this.port)
-        }
-        else {
+        } else {
           reject('Failed to initialize connection with ADS Wallet')
         }
       }
@@ -38,17 +49,18 @@ export default class Wallet {
       this.port.start()
 
       // create the iframe
-      const iframeOrigin = typeof InstallTrigger !== 'undefined' ?
-        'moz-extension://' + this.mozillaExtensionId :
-        'chrome-extension://' + this.chromeExtensionId
       let iframe = document.createElement('iframe')
-      iframe.src = iframeOrigin + '/proxy.html'
+      iframe.src = this.#extensionUrl() + '/proxy.html'
       iframe.setAttribute('style', 'display:none')
       document.body.appendChild(iframe)
-
-      iframe.addEventListener('load', () => {
+      iframe.addEventListener('error', (event) => {
+        clearTimeout(timer)
+        reject('ADS Wallet is not installed')
+      })
+      iframe.addEventListener('load', (event) => {
         // pass the port of message channel to the iframe
-        iframe.contentWindow.postMessage('init', iframeOrigin, [channel.port2])
+        timer = setTimeout(() => reject('ADS Wallet is not installed'), 100)
+        iframe.contentWindow.postMessage('init', this.#extensionUrl(), [channel.port2])
       })
     })
   }
@@ -63,8 +75,7 @@ export default class Wallet {
         throw new Error(`ADS Wallet: cannot reject message ${event.data.id}`)
       }
       item.reject(`${event.data.error.code}: ${event.data.error.message}`)
-    }
-    else if (!item || !item.resolve) {
+    } else if (!item || !item.resolve) {
       throw new Error(`ADS Wallet: cannot resolve message ${event.data.id}`)
     }
     item.resolve(event.data.data)
@@ -74,7 +85,11 @@ export default class Wallet {
     return new Promise((resolve, reject) => {
       this.#init().then(() => {
         const id = Hex.uuidv4()
-        this.queue.push({ id, resolve, reject })
+        this.queue.push({
+          id,
+          resolve,
+          reject
+        })
         this.port.postMessage({
           id,
           testnet: this.testnet,
@@ -95,11 +110,18 @@ export default class Wallet {
   }
 
   authenticate (nonce, hostname, newTab = false) {
-    return this.#sendMessage('authenticate', { nonce, hostname }, { newTab })
+    return this.#sendMessage('authenticate', {
+      nonce,
+      hostname
+    }, { newTab })
   }
 
   signTransaction (data, hash, publicKey, newTab = false) {
-    return this.#sendMessage('sign', { data, hash, publicKey }, { newTab })
+    return this.#sendMessage('sign', {
+      data,
+      hash,
+      publicKey
+    }, { newTab })
   }
 
   broadcast (message) {
@@ -107,6 +129,10 @@ export default class Wallet {
   }
 
   sendOne (address, amount, message) {
-    return this.#sendMessage('send_one', { address, amount, message })
+    return this.#sendMessage('send_one', {
+      address,
+      amount,
+      message
+    })
   }
 }

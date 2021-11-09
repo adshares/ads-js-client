@@ -12,6 +12,7 @@
             max-width: 675px;
             display: inline-block;
         }
+
         pre {
             max-width: 675px;
             color: #d63384;
@@ -97,7 +98,9 @@
             <td>
                 <button class="btn btn-primary" id="btn-decode-tx">Decode</button>
             </td>
-            <td><pre id="decode-status"></pre></td>
+            <td>
+                <pre id="decode-status"></pre>
+            </td>
         </tr>
         <tr>
             <td><label for="encode-data">Command:</label></td>
@@ -155,11 +158,12 @@
             <td><code id="sign-text-status"></code></td>
         </tr>
         <tr>
-            <th colspan="4">Wallet</th>
+            <th>Wallet</th>
+            <th colspan="3" id="wallet-status"></th>
         </tr>
         <tr>
             <td><label for="chrome-id">Chrome Id:</label></td>
-            <td><input type="text" class="form-control" id="chrome-id" value="gcplamledfnolhnnhhaffpekipapilha"/></td>
+            <td><input type="text" class="form-control" id="chrome-id" value="plhalclcdonbmokpgbophapibncijdko"/></td>
             <td></td>
             <td></td>
         </tr>
@@ -184,7 +188,9 @@
             <td>
                 <button class="btn btn-primary" id="btn-authenticate">Authenticate</button>
             </td>
-            <td><pre id="authenticate-status"></pre></td>
+            <td>
+                <pre id="authenticate-status"></pre>
+            </td>
         </tr>
         <tr>
             <td><label for="wallet-sign-public-key">Public key:</label></td>
@@ -261,7 +267,9 @@
             <td>
                 <button class="btn btn-primary" id="btn-rpc-account">Get account</button>
             </td>
-            <td><pre id="rpc-account-status"></pre></td>
+            <td>
+                <pre id="rpc-account-status"></pre>
+            </td>
         </tr>
         <tr>
             <td><label for="rpc-send-data">TX data:</label></td>
@@ -284,256 +292,264 @@
     </table>
 </div>
 <script type="text/javascript">
-  const datasel = document.getElementById('datasel')
-  document.getElementById('data').value = datasel.value
-  datasel.addEventListener('change', function () {
+    const datasel = document.getElementById('datasel')
     document.getElementById('data').value = datasel.value
-  })
-
-  // Call decode TX function
-  document.getElementById('btn-decode-tx').addEventListener('click', function () {
-    console.log('index.html: btn-decode-tx')
-    const txData = document.getElementById('data').value
-    console.log('Decoding: ' + txData)
-    let status
-    try {
-      const command = Ads.Tx.decodeCommand(txData)
-      console.log('Command', command)
-      status = JSON.stringify(command, null, 4)
-    }
-    catch (error) {
-      status = error
-    }
-    document.getElementById('decode-status').textContent = status
-  })
-
-  // Call encode function
-  document.getElementById('btn-encode').addEventListener('click', function () {
-    console.log('index.html: btn-encode')
-    let status
-    try {
-      const command = JSON.parse(document.getElementById('encode-data').value)
-      console.log('Command', command)
-      const tx = Ads.Tx.encodeCommand(command)
-      console.log('Tx', tx)
-      status = tx
-    }
-    catch (error) {
-      status = error
-    }
-    document.getElementById('encode-status').textContent = status
-  })
-
-  // Call getMasterKey function
-  document.getElementById('btn-master-key').addEventListener('click', function () {
-    console.log('index.html: btn-master-key')
-    const seed = document.getElementById('master-seed').value
-    console.log('Seed: ' + seed)
-    const masterKey = Ads.Crypto.getMasterKey(seed)
-    console.log('Master key', masterKey)
-    document.getElementById('master-key-status').textContent = masterKey.key
-  })
-
-  // Call getSecretKey function
-  document.getElementById('btn-secret-key').addEventListener('click', function () {
-    console.log('index.html: btn-secret-key')
-    const seed = document.getElementById('secret-seed').value
-    console.log('Seed: ' + seed)
-    const secretKey = Ads.Crypto.getSecretKey(seed)
-    console.log('Secret key', secretKey)
-    document.getElementById('secret-key-status').textContent = secretKey
-  })
-
-  // Call getPublicKey function
-  document.getElementById('btn-public-key').addEventListener('click', function () {
-    console.log('index.html: btn-public-key')
-    const secretKey = document.getElementById('secret-key').value
-    console.log('Secret key: ' + secretKey)
-    let status = null
-    try {
-      const publicKey = Ads.Crypto.getPublicKey(secretKey)
-      console.log('Public key', publicKey)
-      status = publicKey
-    }
-    catch (error) {
-      console.error(error)
-      status = error
-    }
-    document.getElementById('public-key-status').textContent = status
-  })
-
-  // Call sign function
-  document.getElementById('btn-sign-data').addEventListener('click', function () {
-    console.log('index.html: btn-sign-data')
-    const data = document.getElementById('sign-data').value
-    console.log('Text: ' + data)
-    const secretKey = document.getElementById('secret-key').value
-    console.log('Secret key: ' + secretKey)
-    let status
-    try {
-      const signature = Ads.Crypto.sign(secretKey, data)
-      console.log('Signature', signature)
-      status = signature
-    }
-    catch (error) {
-      console.error(error)
-      status = error
-    }
-    document.getElementById('sign-data-status').textContent = status
-  })
-
-  // Call signText function
-  document.getElementById('btn-sign-text').addEventListener('click', function () {
-    console.log('index.html: btn-sign-text')
-    const data = document.getElementById('sign-text').value
-    console.log('Text: ' + data)
-    const secretKey = document.getElementById('secret-key').value
-    console.log('Secret key: ' + secretKey)
-    let status
-    try {
-      const signature = Ads.Crypto.signText(secretKey, data)
-      console.log('Signature', signature)
-      status = signature
-    }
-    catch (error) {
-      console.error(error)
-      status = error
-    }
-    document.getElementById('sign-text-status').textContent = status
-  })
-
-  createWallet = () => new Ads.Wallet(
-    document.getElementById('chrome-id').value,
-    document.getElementById('mozilla-id').value,
-    document.getElementById('testnet').checked,
-  )
-
-  // Call sign function
-  document.getElementById('btn-ping').addEventListener('click', function () {
-    console.log('index.html: btn-ping')
-    const data = document.getElementById('ping-data').value
-    console.log('Data: ' + data)
-    const wallet = createWallet()
-    wallet.ping(data).then(response => {
-      console.log('Response', response)
-      document.getElementById('ping-status').textContent = response
-    }, error => {
-      console.error(error)
-      document.getElementById('ping-status').textContent = error
+    datasel.addEventListener('change', function () {
+        document.getElementById('data').value = datasel.value
     })
-  })
 
-  // Call authenticate function
-  document.getElementById('btn-authenticate').addEventListener('click', function () {
-    console.log('index.html: btn-authenticate')
-    const nonce = document.getElementById('authenticate-nonce').value
-    console.log('Nonce: ' + nonce)
-    createWallet().authenticate(nonce, window.location.hostname, true).then(response => {
-      console.log('Response', response)
-      document.getElementById('authenticate-status').textContent = response.status === 'accepted' ? JSON.stringify(
-        response, null, 4) : response.status
-    }, error => {
-      console.error(error)
-      document.getElementById('authenticate-status').textContent = error
+    // Call decode TX function
+    document.getElementById('btn-decode-tx').addEventListener('click', function () {
+        console.log('index.html: btn-decode-tx')
+        const txData = document.getElementById('data').value
+        console.log('Decoding: ' + txData)
+        let status
+        try {
+            const command = Ads.Tx.decodeCommand(txData)
+            console.log('Command', command)
+            status = JSON.stringify(command, null, 4)
+        } catch (error) {
+            status = error
+        }
+        document.getElementById('decode-status').textContent = status
     })
-  })
 
-  // Call sign function
-  document.getElementById('btn-wallet-sign').addEventListener('click', function () {
-    console.log('index.html: btn-wallet-sign')
-    const data = document.getElementById('wallet-sign-data').value
-    console.log('Data: ' + data)
-    const hash = document.getElementById('wallet-sign-hashin').value
-    console.log('Hash: ' + hash)
-    const publicKey = document.getElementById('wallet-sign-public-key').value
-    console.log('Public key: ' + publicKey)
-    createWallet().signTransaction(data, hash, publicKey, true).then(response => {
-      console.log('Response', response)
-      document.getElementById('wallet-sign-status').textContent = JSON.stringify(response, null, 4)
-    }, error => {
-      console.error(error)
-      document.getElementById('wallet-sign-status').textContent = error
+    // Call encode function
+    document.getElementById('btn-encode').addEventListener('click', function () {
+        console.log('index.html: btn-encode')
+        let status
+        try {
+            const command = JSON.parse(document.getElementById('encode-data').value)
+            console.log('Command', command)
+            const tx = Ads.Tx.encodeCommand(command)
+            console.log('Tx', tx)
+            status = tx
+        } catch (error) {
+            status = error
+        }
+        document.getElementById('encode-status').textContent = status
     })
-  })
 
-  // Call broadcast function
-  document.getElementById('btn-wallet-broadcast').addEventListener('click', function () {
-    console.log('index.html: btn-wallet-broadcast')
-    const message = document.getElementById('wallet-broadcast-message').value
-    console.log('Message: ' + message)
-    createWallet().broadcast(message).then(response => {
-      console.log('Response', response)
-      document.getElementById('wallet-broadcast-status').textContent = JSON.stringify(response, null, 4)
-    }, error => {
-      console.error(error)
-      document.getElementById('wallet-broadcast-status').textContent = error
+    // Call getMasterKey function
+    document.getElementById('btn-master-key').addEventListener('click', function () {
+        console.log('index.html: btn-master-key')
+        const seed = document.getElementById('master-seed').value
+        console.log('Seed: ' + seed)
+        const masterKey = Ads.Crypto.getMasterKey(seed)
+        console.log('Master key', masterKey)
+        document.getElementById('master-key-status').textContent = masterKey.key
     })
-  })
 
-  // Call sendOne function
-  document.getElementById('btn-wallet-send-one').addEventListener('click', function () {
-    console.log('index.html: btn-wallet-send-one')
-    const address = document.getElementById('wallet-send-one-address').value
-    console.log('Address: ' + address)
-    const amount = document.getElementById('wallet-send-one-amount').value
-    console.log('Amount: ' + amount)
-    const message = document.getElementById('wallet-send-one-message').value
-    console.log('Message: ' + message)
-    createWallet().sendOne(address, amount, message).then(response => {
-      console.log('Response', response)
-      document.getElementById('wallet-send-one-status').textContent = JSON.stringify(response, null, 4)
-    }, error => {
-      console.error(error)
-      document.getElementById('wallet-send-one-status').textContent = error
+    // Call getSecretKey function
+    document.getElementById('btn-secret-key').addEventListener('click', function () {
+        console.log('index.html: btn-secret-key')
+        const seed = document.getElementById('secret-seed').value
+        console.log('Seed: ' + seed)
+        const secretKey = Ads.Crypto.getSecretKey(seed)
+        console.log('Secret key', secretKey)
+        document.getElementById('secret-key-status').textContent = secretKey
     })
-  })
 
-  // Call get timestamp function
-  document.getElementById('btn-rpc-timestamp').addEventListener('click', function () {
-    document.getElementById('rpc-timestamp-status').textContent = '...'
-    console.log('index.html: btn-rpc-timestamp')
-    createClient().getTimestamp().then(response => {
-      console.log('Response', response)
-      document.getElementById('rpc-timestamp-status').textContent = response
-    }, error => {
-      console.error(error)
-      document.getElementById('rpc-timestamp-status').textContent = error
+    // Call getPublicKey function
+    document.getElementById('btn-public-key').addEventListener('click', function () {
+        console.log('index.html: btn-public-key')
+        const secretKey = document.getElementById('secret-key').value
+        console.log('Secret key: ' + secretKey)
+        let status = null
+        try {
+            const publicKey = Ads.Crypto.getPublicKey(secretKey)
+            console.log('Public key', publicKey)
+            status = publicKey
+        } catch (error) {
+            console.error(error)
+            status = error
+        }
+        document.getElementById('public-key-status').textContent = status
     })
-  })
 
-  // Call get account function
-  document.getElementById('btn-rpc-account').addEventListener('click', function () {
-    document.getElementById('rpc-account-status').textContent = '...'
-    console.log('index.html: btn-rpc-account')
-    const address = document.getElementById('rpc-account-address').value
-    console.log('Address: ' + address)
-    createClient().getAccount(address).then(response => {
-      console.log('Response', response)
-      document.getElementById('rpc-account-status').textContent = JSON.stringify(response, null, 4)
-    }, error => {
-      console.error(error)
-      document.getElementById('rpc-account-status').textContent = error
+    // Call sign function
+    document.getElementById('btn-sign-data').addEventListener('click', function () {
+        console.log('index.html: btn-sign-data')
+        const data = document.getElementById('sign-data').value
+        console.log('Text: ' + data)
+        const secretKey = document.getElementById('secret-key').value
+        console.log('Secret key: ' + secretKey)
+        let status
+        try {
+            const signature = Ads.Crypto.sign(secretKey, data)
+            console.log('Signature', signature)
+            status = signature
+        } catch (error) {
+            console.error(error)
+            status = error
+        }
+        document.getElementById('sign-data-status').textContent = status
     })
-  })
 
-  // Call sendTransaction function
-  document.getElementById('btn-rpc-send').addEventListener('click', function () {
-    document.getElementById('rpc-send-status').textContent = '...'
-    console.log('index.html: btn-rpc-send')
-    const data = document.getElementById('rpc-send-data').value
-    console.log('Data: ' + data)
-    const signature = document.getElementById('rpc-send-signature').value
-    console.log('Signature: ' + signature)
-    createClient().sendTransaction(data, signature).then(response => {
-      console.log('Response', response)
-      document.getElementById('rpc-send-status').textContent = response.status === 'accepted'
-        ? response.txId
-        : response.status
-    }, error => {
-      console.error(error)
-      document.getElementById('rpc-send-status').textContent = error
+    // Call signText function
+    document.getElementById('btn-sign-text').addEventListener('click', function () {
+        console.log('index.html: btn-sign-text')
+        const data = document.getElementById('sign-text').value
+        console.log('Text: ' + data)
+        const secretKey = document.getElementById('secret-key').value
+        console.log('Secret key: ' + secretKey)
+        let status
+        try {
+            const signature = Ads.Crypto.signText(secretKey, data)
+            console.log('Signature', signature)
+            status = signature
+        } catch (error) {
+            console.error(error)
+            status = error
+        }
+        document.getElementById('sign-text-status').textContent = status
     })
-  })
+
+    createWallet = () => new Ads.Wallet(
+        document.getElementById('chrome-id').value,
+        document.getElementById('mozilla-id').value,
+        document.getElementById('testnet').checked,
+    )
+
+    checkWallet = () => {
+        const status = document.getElementById('wallet-status')
+        status.innerHTML = '<span class="text-info">⟳</span>'
+        createWallet().getInfo().then(info => {
+          status.innerHTML = `<span class="text-success">Installed v${info.version}</span>`
+        }, () => {
+          status.innerHTML = '<span class="text-danger">Not installed</span>'
+        })
+    }
+    checkWallet()
+    document.getElementById('chrome-id').addEventListener('change', checkWallet)
+    document.getElementById('mozilla-id').addEventListener('change', checkWallet)
+
+    // Call sign function
+    document.getElementById('btn-ping').addEventListener('click', function () {
+        console.log('index.html: btn-ping')
+        const data = document.getElementById('ping-data').value
+        console.log('Data: ' + data)
+        const wallet = createWallet()
+        wallet.ping(data).then(response => {
+            console.log('Response', response)
+            document.getElementById('ping-status').textContent = response
+        }, error => {
+            console.error(error)
+            document.getElementById('ping-status').textContent = error
+        })
+    })
+
+    // Call authenticate function
+    document.getElementById('btn-authenticate').addEventListener('click', function () {
+        console.log('index.html: btn-authenticate')
+        const nonce = document.getElementById('authenticate-nonce').value
+        console.log('Nonce: ' + nonce)
+        createWallet().authenticate(nonce, window.location.hostname, true).then(response => {
+            console.log('Response', response)
+            document.getElementById('authenticate-status').textContent = response.status === 'accepted' ? JSON.stringify(
+                response, null, 4) : response.status
+        }, error => {
+            console.error(error)
+            document.getElementById('authenticate-status').textContent = error
+        })
+    })
+
+    // Call sign function
+    document.getElementById('btn-wallet-sign').addEventListener('click', function () {
+        console.log('index.html: btn-wallet-sign')
+        const data = document.getElementById('wallet-sign-data').value
+        console.log('Data: ' + data)
+        const hash = document.getElementById('wallet-sign-hashin').value
+        console.log('Hash: ' + hash)
+        const publicKey = document.getElementById('wallet-sign-public-key').value
+        console.log('Public key: ' + publicKey)
+        createWallet().signTransaction(data, hash, publicKey, true).then(response => {
+            console.log('Response', response)
+            document.getElementById('wallet-sign-status').textContent = JSON.stringify(response, null, 4)
+        }, error => {
+            console.error(error)
+            document.getElementById('wallet-sign-status').textContent = error
+        })
+    })
+
+    // Call broadcast function
+    document.getElementById('btn-wallet-broadcast').addEventListener('click', function () {
+        console.log('index.html: btn-wallet-broadcast')
+        const message = document.getElementById('wallet-broadcast-message').value
+        console.log('Message: ' + message)
+        createWallet().broadcast(message).then(response => {
+            console.log('Response', response)
+            document.getElementById('wallet-broadcast-status').textContent = JSON.stringify(response, null, 4)
+        }, error => {
+            console.error(error)
+            document.getElementById('wallet-broadcast-status').textContent = error
+        })
+    })
+
+    // Call sendOne function
+    document.getElementById('btn-wallet-send-one').addEventListener('click', function () {
+        console.log('index.html: btn-wallet-send-one')
+        const address = document.getElementById('wallet-send-one-address').value
+        console.log('Address: ' + address)
+        const amount = document.getElementById('wallet-send-one-amount').value
+        console.log('Amount: ' + amount)
+        const message = document.getElementById('wallet-send-one-message').value
+        console.log('Message: ' + message)
+        createWallet().sendOne(address, amount, message).then(response => {
+            console.log('Response', response)
+            document.getElementById('wallet-send-one-status').textContent = JSON.stringify(response, null, 4)
+        }, error => {
+            console.error(error)
+            document.getElementById('wallet-send-one-status').textContent = error
+        })
+    })
+
+    // Call get timestamp function
+    document.getElementById('btn-rpc-timestamp').addEventListener('click', function () {
+        document.getElementById('rpc-timestamp-status').textContent = '...'
+        console.log('index.html: btn-rpc-timestamp')
+        createClient().getTimestamp().then(response => {
+            console.log('Response', response)
+            document.getElementById('rpc-timestamp-status').textContent = response
+        }, error => {
+            console.error(error)
+            document.getElementById('rpc-timestamp-status').textContent = error
+        })
+    })
+
+    // Call get account function
+    document.getElementById('btn-rpc-account').addEventListener('click', function () {
+        document.getElementById('rpc-account-status').textContent = '...'
+        console.log('index.html: btn-rpc-account')
+        const address = document.getElementById('rpc-account-address').value
+        console.log('Address: ' + address)
+        createClient().getAccount(address).then(response => {
+            console.log('Response', response)
+            document.getElementById('rpc-account-status').textContent = JSON.stringify(response, null, 4)
+        }, error => {
+            console.error(error)
+            document.getElementById('rpc-account-status').textContent = error
+        })
+    })
+
+    // Call sendTransaction function
+    document.getElementById('btn-rpc-send').addEventListener('click', function () {
+        document.getElementById('rpc-send-status').textContent = '...'
+        console.log('index.html: btn-rpc-send')
+        const data = document.getElementById('rpc-send-data').value
+        console.log('Data: ' + data)
+        const signature = document.getElementById('rpc-send-signature').value
+        console.log('Signature: ' + signature)
+        createClient().sendTransaction(data, signature).then(response => {
+            console.log('Response', response)
+            document.getElementById('rpc-send-status').textContent = response.status === 'accepted'
+                ? response.txId
+                : response.status
+        }, error => {
+            console.error(error)
+            document.getElementById('rpc-send-status').textContent = error
+        })
+    })
 
 </script>
 </body>
