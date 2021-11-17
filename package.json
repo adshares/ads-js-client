@@ -23,36 +23,35 @@
   "browser": "dist/index.js",
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w",
+    "dev": "rollup -c -w --environment BUILD:dev",
     "test": "jest tests",
     "pretest": "npm run build",
-    "lint": "eslint app chrome test scripts webpack/*.js"
+    "lint": "eslint src tests *.js"
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
     "@babel/core": "^7.15.8",
+    "@babel/eslint-parser": "^7.16.3",
     "@babel/plugin-transform-runtime": "^7.15.8",
     "@babel/preset-env": "^7.15.8",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-multi-entry": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "eslint": "^7.2.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.25.2",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
     "jest": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
     "rollup": "^2.58.1"
   },
   "dependencies": {
+    "@adshares/ads": "^1.0.0",
     "@babel/runtime": "^7.15.4",
-    "bignumber.js": "^9.0.1",
-    "crypto-js": "^4.1.1",
-    "jsonrpc-lite": "^2.2.0",
-    "tweetnacl": "^1.0.3"
+    "jsonrpc-lite": "^2.2.0"
   },
   "jest": {
     "automock": false,

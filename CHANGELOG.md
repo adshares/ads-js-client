@@ -7,10 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2021-10-25
-
+## [1.0.0] - 2021-11-17
 ### Added
-
 - Support for RPC commands:
     - create_free_account,
     - find_accounts,
@@ -20,13 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - get_nodes,
     - get_timestamp,
     - send_transaction.
-- Support for transactions:
-    - broadcast,
-    - change_account_key
-    - create_account
-    - send_one.
-- Blockchain crypto
-- ADS utils
 - Readme
 - License
 - Changelog

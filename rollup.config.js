@@ -3,12 +3,21 @@ import commonjs from '@rollup/plugin-commonjs'
 import babel from '@rollup/plugin-babel'
 import pkg from './package.json'
 
+const plugins = [
+  babel({
+    babelHelpers: 'runtime',
+    exclude: ['node_modules/**'],
+    presets: ['@babel/preset-env'],
+    plugins: ['@babel/plugin-transform-runtime']
+  })
+]
+
 export default [
   // browser-friendly UMD build
   {
-    input: 'src/ads.js',
+    input: 'src/client.js',
     output: {
-      name: 'Ads',
+      name: 'AdsClient',
       file: pkg.browser,
       format: 'iife',
       globals: {
@@ -18,13 +27,8 @@ export default [
     plugins: [
       resolve(),
       commonjs(),
-      babel({
-        babelHelpers: 'runtime',
-        exclude: ['node_modules/**'],
-        presets: ['@babel/preset-env'],
-        plugins: ["@babel/plugin-transform-runtime"],
-      }),
-    ],
+      ...plugins
+    ]
   },
 
   // CommonJS (for Node) and ES module (for bundlers) build.
@@ -34,25 +38,18 @@ export default [
   // an array for the `output` option, where we can specify
   // `file` and `format` for each target)
   {
-    input: 'src/ads.js',
+    input: 'src/client.js',
     external: [
+      '@adshares/ads',
       /@babel\/runtime/,
-      'bignumber.js',
-      /crypto-js/,
-      'jsonrpc-lite/jsonrpc',
-      'tweetnacl',
+      'jsonrpc-lite/jsonrpc'
     ],
     output: [
       { file: pkg.main, format: 'cjs', exports: 'default' },
-      { file: pkg.module, format: 'es' },
+      { file: pkg.module, format: 'es' }
     ],
     plugins: [
-      babel({
-        babelHelpers: 'runtime',
-        exclude: ['node_modules/**'],
-        presets: ['@babel/preset-env'],
-        plugins: ["@babel/plugin-transform-runtime"],
-      }),
-    ],
-  },
+      ...plugins
+    ]
+  }
 ]
