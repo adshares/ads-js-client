@@ -1,6 +1,6 @@
 {
   "name": "@adshares/ads-client",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "display-name": "ADS JS Client",
   "description": "JavaScript ES2015 client for the ADS blockchain API.",
   "author": "Adshares <dev@adshares.net>",
@@ -48,7 +48,7 @@
     "rollup": "^2.58.1"
   },
   "dependencies": {
-    "@adshares/ads": "^1.0.0",
+    "@adshares/ads": "^1.0.3",
     "@babel/runtime": "^7.15.4",
     "jsonrpc-lite": "^2.2.0"
   },

@@ -1,5 +1,5 @@
 import RPC from 'jsonrpc-lite/jsonrpc'
-import Ads from '@adshares/ads'
+import { decodeSender, splitAddress, TX_TYPES } from '@adshares/ads'
 import { RpcError } from './errors'
 
 const REQUESTS = {
@@ -89,7 +89,7 @@ export default class AdsClient {
   }
 
   getAccount (address) {
-    return this.request(Ads.Tx.TX_TYPES.GET_ACCOUNT, {
+    return this.request(TX_TYPES.GET_ACCOUNT, {
       address
     })
       .then((response) => {
@@ -108,7 +108,7 @@ export default class AdsClient {
   }
 
   findAccounts (publicKey) {
-    return this.request(Ads.Tx.TX_TYPES.FIND_ACCOUNTS, {
+    return this.request(TX_TYPES.FIND_ACCOUNTS, {
       public_key: publicKey
     })
       .then((response) => {
@@ -127,7 +127,7 @@ export default class AdsClient {
   }
 
   getNodes () {
-    return this.request(Ads.Tx.TX_TYPES.GET_BLOCK, {
+    return this.request(TX_TYPES.GET_BLOCK, {
       block: ''
     })
       .then((response) => {
@@ -163,10 +163,10 @@ export default class AdsClient {
   }
 
   sendTransaction (data, signature) {
-    const sender = Ads.Tx.decodeSender(data)
-    return this.getNode(Ads.splitAddress(sender).nodeId)
+    const sender = decodeSender(data)
+    return this.getNode(splitAddress(sender).nodeId)
       .then(node => {
-        return this.request(Ads.Tx.TX_TYPES.SEND_AGAIN, {
+        return this.request(TX_TYPES.SEND_AGAIN, {
           data,
           signature,
           _host: node.ipv4

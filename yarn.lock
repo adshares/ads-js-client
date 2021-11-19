@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@adshares/ads@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@adshares/ads/-/ads-1.0.0.tgz#e5ac911b9e3104de822ce8f26f76ac87e1293bb3"
-  integrity sha512-1zSmXujrdS1QxPUguDejT5bxkPCIUWwfZ4iF0MU1u/zXaiOPT3KWQc5BrpQDY0eLCuIMNexChYW4wauGmfrIHQ==
+"@adshares/ads@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@adshares/ads/-/ads-1.0.3.tgz#7524329807006c60af32c9ea1062af7ba586ab84"
+  integrity sha512-8gyHDFjf437jvoSkeZ1IXD0R/RHCf9hbxhAAjBB/jjm/EnoiTFTzo0XoS7mk71LJQtFbN7C3PBClnJu/zdD1xA==
   dependencies:
     "@babel/runtime" "^7.15.4"
     bignumber.js "^9.0.1"
