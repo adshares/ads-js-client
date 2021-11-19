@@ -1,6 +1,6 @@
 {
   "name": "@adshares/ads-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "display-name": "ADS JS Client",
   "description": "JavaScript ES2015 client for the ADS blockchain API.",
   "author": "Adshares <dev@adshares.net>",
