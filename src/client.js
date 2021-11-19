@@ -162,7 +162,7 @@ export default class AdsClient {
       })
   }
 
-  sendTransaction (data, signature, host) {
+  sendTransaction (data, signature) {
     const sender = Ads.Tx.decodeSender(data)
     return this.getNode(Ads.splitAddress(sender).nodeId)
       .then(node => {

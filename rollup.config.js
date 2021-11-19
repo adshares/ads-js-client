@@ -18,7 +18,7 @@ export default [
     input: 'src/client.js',
     output: {
       name: 'AdsClient',
-      file: pkg.browser,
+      file: 'dist/index.js',
       format: 'iife',
       globals: {
         crypto: 'Crypto'

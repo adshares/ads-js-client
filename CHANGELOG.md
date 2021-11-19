@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2021-11-19
+### Fixed
+- Import as a module
+
 ## [1.0.0] - 2021-11-17
 ### Added
 - Support for RPC commands:
@@ -23,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changelog
 - Contributing
 
-[Unreleased]: https://github.com/adshares/ads-js-client/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/adshares/ads-js-client/compare/v1.0.1...HEAD
 
+[1.0.1]: https://github.com/adshares/ads-js/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/adshares/ads-js-client/releases/tag/v1.0.0

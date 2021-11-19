@@ -18,7 +18,31 @@ ADS JS Client is an **JavaScript ES2015** client for the [ADS blockchain](https:
 
 The module can be used to send basic transactions. ADS JS Client is a free, open-source npm module. It supports both mainnet and testnet.
 
+## Install
 
+```bash
+npm install @adshares/ads-client
+```
+or
+```bash
+yarn add @adshares/ads-client
+```
+
+## Usage
+
+All methods return Promises.
+
+```js
+import AdsClient from '@adshares/ads-client';
+
+// pass true to enable testnet
+const adsClient = new AdsClient(false);
+
+adsWallet.getInfo().then(info => {})
+adsWallet.getNodes().then(nodes => {})
+adsWallet.sendTransaction(_DATA_, _SIGNATURE_).then(response => {})
+
+```
 
 ### Contributing
 

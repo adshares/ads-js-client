@@ -20,7 +20,6 @@
   "homepage": "https://github.com/adshares/ads-js-client#readme",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
-  "browser": "dist/index.js",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w --environment BUILD:dev",
